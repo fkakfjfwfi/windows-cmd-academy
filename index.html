@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>命令行学院 · Windows 终端通关手册</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="bar">
+    <span class="brand"><span class="logo">&gt;_</span>命令行学院</span>
+    <nav class="nav">
+      <a href="index.html">课程总览</a>
+      <a href="stage1.html">① 终端入门</a>
+      <a href="stage2.html">② 文件与目录</a>
+      <a href="stage3.html">③ 文本与管道</a>
+      <a href="stage4.html">④ 网络诊断</a>
+      <a href="stage5.html">⑤ 系统管理</a>
+      <a href="stage6.html">⑥ PowerShell 与脚本</a>
+      <a href="cheatsheet.html">⌨ 速查表</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <span class="tag">零基础 · 全程动手 · 全部命令在你电脑上就能练</span>
+    <h1>Windows 命令行通关手册</h1>
+    <p class="lead">起点：只会用鼠标点界面&nbsp;&nbsp;→&nbsp;&nbsp;终点：文件批处理 · 网络排障 · 系统维护 · 一键自动化脚本</p>
+    <div class="pwrap">
+      <div class="progress"><div class="fill" data-progress-bar="all"></div></div>
+      <span class="plabel" data-progress-label="all">0 / 35 项已打卡</span>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>为什么要学命令行？</h2>
+    <div class="grid g2">
+      <div class="card">
+        <h3>🖱️ 图形界面做不到的事</h3>
+        <p>批量重命名 300 个文件、找出谁偷偷占用了你的 8080 端口、把一个目录的结构原样镜像到移动硬盘、给全公司电脑一键装齐软件——鼠标点到手抽筋，命令行<b>一行搞定</b>。而且命令行只认识键盘，永远不会"这个按钮藏在哪"。</p>
+      </div>
+      <div class="card">
+        <h3>🧭 命令行是 IT 世界的通用语</h3>
+        <p>服务器没有桌面，全靠命令行；程序员装环境、查日志、跑构建在终端里；网上所有教程遇到"打开 cmd 执行 xxx"时，会命令行的人 10 秒照做，不会的人直接卡死。Reddit 上 r/sysadmin 老司机的共识：<b> CMD 命令大多只是 .exe 程序，CMD 和 PowerShell 里都能跑</b>——学会一次，处处通用。</p>
+      </div>
+    </div>
+    <div class="callout info">
+      <b>本站怎么学：</b>每个阶段配 <b>🎬 动画课堂</b>（先看懂原理）+ <b>互动实验室</b>（网页里直接玩命令）+ <b>打卡清单</b>（勾掉才算学会）+ <b>动手任务</b>（回到自己电脑实战）。网页里所有模拟终端都不用装任何东西——但每阶段最后一定要回到真终端练一遍。
+    </div>
+    <div class="callout warn">
+      <b>适读人群：</b>Windows 10 / 11 用户，零基础可入。会用鼠标、认识英文字母即可，不需要编程基础——第⑥阶段会带你写第一个自动化脚本。
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>六阶段通关路线</h2>
+    <div class="flow">
+      <span class="fnode"><b>① 终端入门</b>打得开、聊得来 · 1~2天</span><span class="farrow">→</span>
+      <span class="fnode"><b>② 文件与目录</b>摸得着文件 · 2~3天</span><span class="farrow">→</span>
+      <span class="fnode"><b>③ 文本与管道</b>数据加工厂 · 2~3天</span><span class="farrow">→</span>
+      <span class="fnode"><b>④ 网络诊断</b>断网自己修 · 2~3天</span><span class="farrow">→</span>
+      <span class="fnode"><b>⑤ 系统管理</b>电脑听你的 · 3~5天</span><span class="farrow">→</span>
+      <span class="fnode"><b>⑥ 脚本自动化</b>分水岭 · 1~2周</span>
+    </div>
+    <div class="grid g3">
+      <a class="card stagecard" href="stage1.html">
+        <span class="num">1</span>
+        <h3>终端入门 —— 打得开、聊得来</h3>
+        <p class="muted">CMD / PowerShell / Windows Terminal 是什么关系？命令长什么样、系统怎么执行它？Tab 补全、历史记录这些保命技巧。含<b>可打字的模拟终端</b>。</p>
+        <span class="go">进入阶段 ① →</span>
+        <p class="muted" style="margin-top:6px">打卡进度：<span data-stage-progress="1">0/5</span></p>
+      </a>
+      <a class="card stagecard" href="stage2.html">
+        <span class="num">2</span>
+        <h3>文件与目录 —— 摸得着文件</h3>
+        <p class="muted">dir / cd / copy / move / del 全家桶，通配符 <code class="inline">* ?</code> 的威力与危险，以及备份之王 robocopy。含<b>可视化文件树操作台</b>。</p>
+        <span class="go">进入阶段 ② →</span>
+        <p class="muted" style="margin-top:6px">打卡进度：<span data-stage-progress="2">0/6</span></p>
+      </a>
+      <a class="card stagecard" href="stage3.html">
+        <span class="num">3</span>
+        <h3>文本与管道 —— 数据加工厂</h3>
+        <p class="muted">管道 <code class="inline">|</code> 和重定向 <code class="inline">&gt; &gt;&gt; 2&gt;&amp;1</code>：把命令像乐高一样拼起来。findstr 文本搜索专题。含<b>管道流水线实验室</b>。</p>
+        <span class="go">进入阶段 ③ →</span>
+        <p class="muted" style="margin-top:6px">打卡进度：<span data-stage-progress="3">0/6</span></p>
+      </a>
+      <a class="card stagecard" href="stage4.html">
+        <span class="num">4</span>
+        <h3>网络诊断 —— 断网自己修</h3>
+        <p class="muted">ping / ipconfig / tracert / nslookup / netstat 一条龙排障法，"谁占了我的端口"连环追凶。含<b>网络排障决策树</b>。</p>
+        <span class="go">进入阶段 ④ →</span>
+        <p class="muted" style="margin-top:6px">打卡进度：<span data-stage-progress="4">0/6</span></p>
+      </a>
+      <a class="card stagecard" href="stage5.html">
+        <span class="num">5</span>
+        <h3>系统管理 —— 电脑听你的</h3>
+        <p class="muted">进程查杀 taskkill、服务管理、计划任务、环境变量、系统体检 sfc / chkdsk、装软件神器 winget。含<b>进程管理模拟器</b>。</p>
+        <span class="go">进入阶段 ⑤ →</span>
+        <p class="muted" style="margin-top:6px">打卡进度：<span data-stage-progress="5">0/6</span></p>
+      </a>
+      <a class="card stagecard" href="stage6.html">
+        <span class="num">6</span>
+        <h3>PowerShell 与脚本 —— 一键自动化</h3>
+        <p class="muted">现代终端 PowerShell：对象管道、CMD↔PowerShell 对照、批处理 .bat 逐行精讲，写出你的<b>一键体检脚本</b>。</p>
+        <span class="go">进入阶段 ⑥ →</span>
+        <p class="muted" style="margin-top:6px">打卡进度：<span data-stage-progress="6">0/6</span></p>
+      </a>
+    </div>
+    <p style="margin-top:16px">
+      <a class="btn primary" href="cheatsheet.html">⌨ 直接去终极速查表（支持搜索 / 可打印）</a>
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>学习现状评估</h2>
+    <div class="grid g2">
+      <div class="card">
+        <h3>✅ 对多数人而言的起点</h3>
+        <p>每天用 Windows 办公娱乐，装过软件、见过 cmd 黑窗口；可能在教程里复制粘贴过一两条命令，但不知道为什么这么写；命令一报错就只会截图问人。</p>
+      </div>
+      <div class="card">
+        <h3>⛔ 多数人的瓶颈</h3>
+        <p>命令是"背"出来的而不是"用"出来的——背了就忘；参数 <code class="inline">/a /s /f</code> 一大堆，不知道哪个有用；分不清 CMD 和 PowerShell；一遇到真实需求（批量改名、查端口、定时备份）就不知道用哪条命令。</p>
+      </div>
+    </div>
+    <div class="callout info">
+      <b>核心结论：</b>命令行不是背出来的，是<b>用场景带出来的</b>。所以本站每个阶段都从"你一定遇到过的场景"出发（文件乱、网断了、电脑卡），先在网页里模拟玩会，再回真机练习。不求背下全部命令，只求每个场景知道"该用哪一条、参数什么意思、出错了怎么办"。最后一页<b>速查表</b>帮你兜底：忘了就查，查完就会。
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>开始之前：三个约定</h2>
+    <div class="grid g3">
+      <div class="card">
+        <h3>📐 记号约定</h3>
+        <p><code class="inline">C:\Users\you&gt;</code> 是提示符（你不用输入它）；<code class="inline">dir /a</code> 里的 <code class="inline">/a</code> 是参数（开关）；方括号 <code class="inline">[文件]</code> 表示可省略。Windows 命令<b>不区分大小写</b>，<code class="inline">DIR</code> 和 <code class="inline">dir</code> 一样。</p>
+      </div>
+      <div class="card">
+        <h3>⚠️ 安全第一</h3>
+        <p>命令行删除<b>不进回收站</b>、覆盖文件<b>没有确认框</b>。练习阶段建议专门建一个 <code class="inline">C:\练习</code> 文件夹，所有实验都在里面做；含 <code class="inline">del /s</code>、<code class="inline">format</code> 的命令，确认路径后再回车。</p>
+      </div>
+      <div class="card">
+        <h3>🆘 卡住了怎么办</h3>
+        <p>任何命令加 <code class="inline">/?</code> 看官方帮助（如 <code class="inline">robocopy /?</code>）；程序卡住按 <kbd class="kbd">Ctrl+C</kbd> 中断；屏幕乱了 <code class="inline">cls</code> 清屏；想退出输 <code class="inline">exit</code>。这三招保你永远"死不了"。</p>
+      </div>
+    </div>
+  </section>
+
+  <p style="margin-top:36px">
+    <a class="btn primary" href="stage1.html">开始阶段 ①：终端入门 →</a>
+    <a class="btn" href="cheatsheet.html">先逛逛速查表</a>
+  </p>
+</main>
+
+<footer class="foot">命令行学院 · Windows 终端通关手册 · 每个命令都在 Win10/11 实测可用</footer>
+<script src="assets/app.js"></script>
+</body>
+</html>

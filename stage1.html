@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段① 终端入门 —— 打得开、聊得来 · 命令行学院</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="bar">
+    <span class="brand"><span class="logo">&gt;_</span>命令行学院</span>
+    <nav class="nav">
+      <a href="index.html">课程总览</a>
+      <a href="stage1.html">① 终端入门</a>
+      <a href="stage2.html">② 文件与目录</a>
+      <a href="stage3.html">③ 文本与管道</a>
+      <a href="stage4.html">④ 网络诊断</a>
+      <a href="stage5.html">⑤ 系统管理</a>
+      <a href="stage6.html">⑥ PowerShell 与脚本</a>
+      <a href="cheatsheet.html">⌨ 速查表</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" style="padding:30px 32px">
+    <span class="tag">阶段 ① · 预计 1~2 天</span>
+    <h1 style="font-size:24px">终端入门 —— 打得开、聊得来</h1>
+    <p class="lead">阶段目标：能自信地打开终端，看懂任何一条命令的结构，知道系统是怎么"听懂"你说话的。</p>
+    <div class="pwrap">
+      <div class="progress"><div class="fill" data-progress-bar="1"></div></div>
+      <span class="plabel" data-progress-label="1"></span>
+    </div>
+  </section>
+
+  <!-- ============ 三种终端 ============ -->
+  <section class="section">
+    <h2>互动 1 · 三个"黑窗口"，到底是什么关系？</h2>
+    <p class="muted">新手最常混的概念。点击下面三个标签，一句话说清谁是谁。微软官方的说法：<b>Command shell（CMD）是 Windows 最早的 shell，PowerShell 是它的升级换代产品</b>，在 PowerShell 里 CMD 命令照样能跑，反过来不行。</p>
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tt="cmd" type="button">CMD 命令提示符</button>
+      <button class="tab" data-tt="ps" type="button">PowerShell</button>
+      <button class="tab" data-tt="wt" type="button">Windows Terminal</button>
+    </div>
+    <div class="card" id="tt-panel">
+      <h3 id="tt-title" style="color:var(--brand)">CMD（cmd.exe）—— 老爷爷，但到处都有它</h3>
+      <p id="tt-desc">1987 年 DOS 时代一路沿用至今。凡是网上教程说"打开 cmd / 命令提示符"，就是它。优点：到处都有、兼容一切老教程；缺点：只能跑 Windows 命令，不懂 PowerShell 的 cmdlet（如 Get-Process），文本处理能力弱。</p>
+      <div class="term" style="margin-top:10px"><div class="term-body" id="tt-term"><span class="pr">C:\Users\you&gt;</span> Get-Process
+<span class="err">'Get-Process' 不是内部或外部命令，也不是可运行的程序或批处理文件。</span></div></div>
+    </div>
+  </section>
+
+  <!-- ============ 动画课堂 ============ -->
+  <section class="section">
+    <h2>🎬 动画课堂 · 《一条命令的一生》</h2>
+    <p class="muted">约 2 分钟 · 自动播放：▶ 播放 / 空格暂停 / 进度条可拖 / 可调速。看完你就明白：为什么命令会"找不到"、为什么参数要加引号。</p>
+    <div class="lesson" id="lesson1">
+      <div class="screen"><div class="theater" id="th1">
+        <div class="row">
+          <div class="panel col" id="k1-you"><h4>⌨ 你和黑窗口</h4>
+            <div class="addrbox" data-dyn id="k1-in"></div>
+            <div class="th-screen" data-dyn id="k1-out"></div>
+          </div>
+          <div class="col" style="flex:0 0 190px;max-width:190px">
+            <div class="th-pipe">
+              <div class="env" id="k1-env" data-fx>📦 robocopy</div>
+            </div>
+            <div class="note" data-dyn id="k1-pipe"></div>
+          </div>
+          <div class="panel col" id="k1-sys"><h4>🖥 系统内部</h4><div class="th-mono" data-dyn id="k1-sysb"></div></div>
+        </div>
+        <div class="center-x" style="margin-top:14px">
+          <span class="pill" id="k1-split">分词解析</span>
+          <span class="pill" id="k1-which">查找程序</span>
+          <span class="pill" id="k1-run">创建进程</span>
+          <span class="pill" id="k1-code">返回退出码</span>
+        </div>
+        <div class="note" data-dyn id="k1-note"></div>
+      </div></div>
+    </div>
+  </section>
+  <script src="assets/lesson-player.js"></script>
+  <script>
+  (function () {
+    function g(r, id) { return r.querySelector('#' + id); }
+    function T(r, id, s) { g(r, id).textContent = s; }
+    function onE(r, id, c) { g(r, id).classList.add(c || 'on'); }
+    var S = [
+      { d: 10, cap: '每天有人在黑窗口里敲下回车。这一集，我们跟踪一条命令从敲键到出结果的全过程。', set: { 'k1-in': 'C:\\Users\\you> _', 'k1-out': '（等待输入…）', 'k1-sysb': 'cmd.exe 待机中…', 'k1-note': '第 0 秒：你打开了命令提示符。' } },
+      { d: 13, cap: '你输入：robocopy "C:\\我的 文件" D:\\备份 /E，然后回车。cmd.exe 收到的是一整行文本，它先要切词。', set: { 'k1-in': 'C:\\Users\\you> robocopy "C:\\我的 文件" D:\\备份 /E', 'k1-note': '分词规则：默认按空格切，引号里的空格不切。' }, cls: { 'k1-you': 'on', 'k1-split': 'on' } },
+      { d: 13, cap: '切出四段：程序名 robocopy、源路径（带引号，因为"我的 文件"中间有空格）、目标路径、开关 /E（复制子目录）。', set: { 'k1-sysb': '词 1：robocopy（程序名）\n词 2：C:\\我的 文件（源）\n词 3：D:\\备份（目标）\n词 4：/E（开关）', 'k1-pipe': '解析完成 ✓', 'k1-note': '所以路径里有空格就一定要加引号，否则会被切成两截。' }, cls: { 'k1-split': 'good' } },
+      { d: 13, cap: '下一个问题：robocopy 是内部命令还是外部程序？dir、echo 这类内部命令长在 cmd.exe 身体里，直接执行；robocopy 不在内置名单里——去磁盘找！', set: { 'k1-sysb': '内置名单：dir echo cd copy …\n没有 robocopy → 找外部程序\nrobocopy.exe 存在！', 'k1-note': '内部命令 vs 外部程序，是理解报错的第一把钥匙。' }, cls: { 'k1-which': 'on' } },
+      { d: 13, cap: '去哪里找？按 PATH 环境变量里的目录逐个翻：C:\\Windows\\system32 → 找到 robocopy.exe！', set: { 'k1-pipe': 'C:\\Windows\\system32 ✓', 'k1-sysb': '查 PATH：\n1. C:\\Windows\\system32 → 命中\n   robocopy.exe', 'k1-note': 'PATH 里没有的目录，里面的程序就"找不到"。' }, cls: { 'k1-which': 'good' } },
+      { d: 12, cap: 'cmd.exe 创建一个新进程，把三个参数原封不动递给 robocopy.exe。复制任务开工。', set: { 'k1-out': '复制中… 12 个文件 ✓', 'k1-pipe': 'robocopy.exe 运行中', 'k1-note': '参数是"递"给程序的，程序自己决定怎么用。' }, cls: { 'k1-run': 'on', 'k1-sys': 'on' } },
+      { d: 13, cap: '干完活，robocopy.exe 退出，留下一句话和一个退出码：0 表示成功，非 0 表示有问题。脚本就是靠退出码判断成败的。', set: { 'k1-out': '复制中… 12 个文件 ✓\n退出码 0（成功）', 'k1-note': 'CMD 里 echo %errorlevel%，PowerShell 里 $LASTEXITCODE。' }, cls: { 'k1-code': 'on' } },
+      { d: 11, cap: '提示符重新出现，cmd.exe 继续待机，等你下一行。命令行就是这样一个永不瞑目的循环：读入 → 解析 → 执行 → 打印。', set: { 'k1-in': 'C:\\Users\\you> _', 'k1-pipe': '待机中…', 'k1-note': '这个循环有个名字：REPL（读取-求值-打印-循环）。' }, cls: { 'k1-run': 'good', 'k1-code': 'good' } },
+      { d: 12, cap: '回顾全程：分词 → 找程序 → 执行 → 退出码。理解了它，"找不到命令"查 PATH、"参数错了"看 /?，一切报错都有迹可循。现在去下面的解剖台亲手拆一条命令！', set: { 'k1-note': '▼ 往下滚动，开始动手' }, cls: { 'k1-split': 'good', 'k1-which': 'good', 'k1-run': 'good', 'k1-code': 'good' } }
+    ];
+    new LessonPlayer({ root: '#lesson1', title: '一条命令的一生', scenes: S });
+  })();
+  </script>
+
+  <!-- ============ 互动2：命令解剖台 ============ -->
+  <section class="section">
+    <h2>互动 2 · 命令行解剖台</h2>
+    <p class="muted">下面是一条真实可用的命令（一条顶十条的 robocopy 备份命令，阶段②细讲）。<b>点击任意一段</b>，右侧解释它叫什么、干什么。</p>
+    <div class="lab-grid">
+      <div class="anat-box" id="anat-src"></div>
+      <div class="card">
+        <h3 id="anat-title" style="color:var(--brand)">👆 点左边任意一段</h3>
+        <p id="anat-desc">任何命令行——再长再吓人——都由这几种零件拼成。认出零件，命令就不用背了。</p>
+        <div class="callout info" id="anat-tip" hidden></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>🎛 换一条命令拆拆看</h3>
+      <div class="opts" id="anat-eg"></div>
+    </div>
+  </section>
+
+  <!-- ============ 互动3：模拟终端 ============ -->
+  <section class="section">
+    <h2>互动 3 · 模拟终端（可以打字！）</h2>
+    <p class="muted">这是一个装在网页里的迷你 CMD，内置一块虚拟硬盘。<b>点击黑窗口底部的输入行</b>，像真的一样敲命令：试试 <code class="inline">dir</code>、<code class="inline">cd 练习</code>、<code class="inline">type todo.txt</code>、<code class="inline">tree</code>、<code class="inline">cd D:\备份</code> 再输 <code class="inline">d:</code>。不会玩就输 <code class="inline">help</code>。</p>
+    <div class="term" id="miniTerm">
+      <div class="term-bar">
+        <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+        <span class="ttitle">命令行学院 · 模拟终端（教育版，不影响真实电脑）</span>
+      </div>
+      <div class="term-body" id="mt-out"></div>
+      <div class="term-in">
+        <span class="pr" id="mt-prompt">C:\Users\you&gt;</span>
+        <input id="mt-in" type="text" autocomplete="off" spellcheck="false" placeholder="输入命令后回车，输入 help 看支持哪些">
+      </div>
+    </div>
+    <div class="opts" style="margin-top:10px">
+      <span class="chip">挑战 1：找到 todo.txt 里写的是什么</span>
+      <span class="chip">挑战 2：把隐藏文件揪出来（dir 的某个开关）</span>
+      <span class="chip">挑战 3：跳到 D 盘的 备份 文件夹</span>
+      <span class="chip">挑战 4：看看 C 盘的目录树</span>
+    </div>
+    <details class="acc"><summary>🔑 挑战卡壳了？点开看提示</summary><div class="acc-body">
+      <p>挑战 1：<code class="inline">cd 练习</code> 进目录，再 <code class="inline">type todo.txt</code>。</p>
+      <p>挑战 2：<code class="inline">cd \</code> 回到 C 盘根目录，<code class="inline">dir /a</code>（/a = 显示含隐藏在内的所有文件）。</p>
+      <p>挑战 3：<code class="inline">cd D:\备份</code> 会发现"纹丝不动"——跨盘符要 <code class="inline">cd /d D:\备份</code>，或者先敲 <code class="inline">d:</code> 换盘。</p>
+      <p>挑战 4：<code class="inline">cd \</code> 后 <code class="inline">tree</code>。再来一发 <code class="inline">ipconfig</code>、<code class="inline">ping baidu.com</code> 看模拟输出。</p>
+    </div></details>
+  </section>
+
+  <!-- ============ 互动4：效率技巧 + 测验 ============ -->
+  <section class="section">
+    <h2>保命技巧：先学会"不慌"</h2>
+    <div class="grid g3">
+      <div class="card"><h3>⌨ 键盘技巧</h3>
+        <p><kbd class="kbd">Tab</kbd> 自动补全文件/目录名（按多次轮换）——手不酸的秘密；<br><kbd class="kbd">↑</kbd><kbd class="kbd">↓</kbd> 翻历史命令；<br><kbd class="kbd">F7</kbd> 弹出历史列表；<br><kbd class="kbd">Esc</kbd> 清空当前行；<br><kbd class="kbd">Ctrl+C</kbd> 中止正在跑的命令。</p>
+      </div>
+      <div class="card"><h3>🖱 窗口技巧</h3>
+        <p>右键=粘贴（别再找 Ctrl+V）；<br>标记选中后回车=复制；<br><code class="inline">cls</code> 清屏；<br><kbd class="kbd">Win</kbd>+<kbd class="kbd">.</kbd> 打开 emoji 面板（注释卖萌可用）；<br>在文件夹地址栏直接输 <code class="inline">cmd</code> 回车 = 在该目录打开终端。</p>
+      </div>
+      <div class="card"><h3>🆘 求助技巧</h3>
+        <p>任何命令后面加 <code class="inline">/?</code> 看官方说明书，例如 <code class="inline">robocopy /?</code>；<br><code class="inline">help</code> 列出常用命令；<br>报错先读原文，90% 的报错直接告诉了原因。</p>
+      </div>
+    </div>
+    <h3 style="margin-top:22px">小测验：三道题检查你有没有听懂动画课堂</h3>
+    <div id="quiz"></div>
+  </section>
+
+  <!-- ============ 打卡清单 ============ -->
+  <section class="section">
+    <h2>知识点打卡清单</h2>
+    <div class="card check">
+      <label><input type="checkbox" id="s1-1" data-persist><span>能说出 CMD / PowerShell / Windows Terminal 的区别，并至少用 2 种方式打开终端</span></label>
+      <label><input type="checkbox" id="s1-2" data-persist><span>看懂命令结构：程序名 + 参数 + 开关；路径带空格要加引号</span></label>
+      <label><input type="checkbox" id="s1-3" data-persist><span>知道内部命令和外部程序（.exe）的区别，明白 PATH 决定了"哪里找得到程序"</span></label>
+      <label><input type="checkbox" id="s1-4" data-persist><span>玩转路径：相对/绝对路径、<code class="inline">..</code> 和 <code class="inline">\</code>、跨盘符用 <code class="inline">cd /d</code></span></label>
+      <label><input type="checkbox" id="s1-5" data-persist><span>掌握保命三招：Tab 补全、Ctrl+C 中止、<code class="inline">命令 /?</code> 求助</span></label>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="grid g2">
+      <div class="card">
+        <h3>🎯 本阶段动手任务（回到你的真电脑）</h3>
+        <p>1. 用 Win+R 输 <code class="inline">cmd</code>、Win+X 菜单、文件夹地址栏输 <code class="inline">cmd</code> 三种方式各打开一次终端；<br>
+           2. 在模拟终端里完成上面 4 个挑战，然后回真终端把同样的操作做一遍；<br>
+           3. 分别执行 <code class="inline">where robocopy</code> 和 <code class="inline">where dir</code>，观察外部程序找得到、内部命令找不到——亲手验证动画课堂的内容；<br>
+           4. 随便挑一条命令（比如 <code class="inline">xcopy /?</code>）读完它的帮助第一屏。</p>
+      </div>
+      <div class="card">
+        <h3>📚 资源</h3>
+        <p>• <a href="https://www.bilibili.com/video/BV1Yb411H769" target="_blank" rel="noopener">B站 · 《Windows CMD 命令行基础教程》54 分钟系统过一遍</a><br>
+           • <a href="https://www.bilibili.com/video/BV1Gb411B7md" target="_blank" rel="noopener">B站 · Windows 命令行教程（中英双字幕）</a><br>
+           • <a href="https://learn.microsoft.com/zh-cn/windows-server/administration/windows-commands/windows-commands" target="_blank" rel="noopener">微软官方 · Windows 命令 A-Z 大全（当字典查）</a></p>
+        <div class="callout ok"><b>通关标准：</b>给你一条从网上抄来的长命令，你能指出"哪段是程序、哪段是参数、哪个是开关"，并且敢回车执行（或知道先 /? 看看再执行）。</div>
+      </div>
+    </div>
+  </section>
+
+  <p style="margin-top:30px">
+    <a class="btn" href="index.html">← 返回总览</a>
+    <a class="btn primary" href="stage2.html">下一阶段：文件与目录 →</a>
+  </p>
+</main>
+
+<footer class="foot">阶段 ① · 终端入门 · 命令行学院</footer>
+<script src="assets/app.js"></script>
+<script>
+/* ============ 1. 三个终端 ============ */
+(function () {
+  var DATA = {
+    cmd: {
+      title: 'CMD（cmd.exe）—— 老爷爷，但到处都有它',
+      desc: '1987 年 DOS 时代一路沿用至今。凡是网上教程说"打开 cmd / 命令提示符"，就是它。优点：到处都有、兼容一切老教程；缺点：只能跑 Windows 命令，不懂 PowerShell 的 cmdlet（如 Get-Process），文本处理能力弱。',
+      term: '<span class="pr">C:\\Users\\you&gt;</span> Get-Process\n<span class="err">\'Get-Process\' 不是内部或外部命令，也不是可运行的程序或批处理文件。</span>'
+    },
+    ps: {
+      title: 'PowerShell —— 官方钦定的接班人',
+      desc: '微软现在主推的现代化 shell：命令是"动词-名词"风格的 cmdlet（如 Get-ChildItem），管道里流动的是对象而不是纯文本，脚本能力远超 CMD。在 PowerShell 里 CMD 命令（dir、ipconfig 等）照样能跑，微软官方建议：自动化任务优先用 PowerShell。提示符以 PS> 开头。',
+      term: '<span class="pr">PS C:\\Users\\you&gt;</span> Get-Process notepad | Stop-Process\n<span class="ok">（找不到 notepad 进程时不报错，找到就秒杀）</span>\n<span class="cm"># CMD 命令也能在 PowerShell 里跑：</span>\n<span class="pr">PS C:\\Users\\you&gt;</span> ipconfig /all  ✓'
+    },
+    wt: {
+      title: 'Windows Terminal —— 只是"壳"的壳',
+      desc: 'Win11 自带、Win10 可装的新式终端窗口：多标签页、漂亮字体、真彩色。注意它本身不是 shell，而是一个能承载 CMD、PowerShell、WSL（Linux）的窗口容器。就像浏览器和网页的关系。Win10 没装它？用 CMD / PowerShell 照样学完全程，无碍。',
+      term: '<span class="cm">┌─[标签1]─[标签2: PowerShell]─[标签3: Ubuntu]─┐</span>\n<span class="pr">PS C:\\Users\\you&gt;</span> <span class="ok">一个窗口，多个世界</span>'
+    }
+  };
+  var tabs = document.querySelectorAll('[data-tt]');
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () {
+      tabs.forEach(function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      var d = DATA[t.getAttribute('data-tt')];
+      document.getElementById('tt-title').textContent = d.title;
+      document.getElementById('tt-desc').textContent = d.desc;
+      document.getElementById('tt-term').innerHTML = d.term;
+    });
+  });
+})();
+
+/* ============ 2. 命令解剖台 ============ */
+(function () {
+  var EXAMPLES = [
+    {
+      line: 'robocopy "C:\\我的 文件" D:\\备份 /E /MIR /R:2 /W:3 > log.txt 2>&1',
+      parts: [
+        { t: 'robocopy', title: '程序名（要执行的命令）', desc: '谁来干活。若是内部命令（dir、echo…）cmd.exe 自己动手；否则按 PATH 找到对应的 .exe 文件。', tip: '不确定是哪种？输 where robocopy 能找到路径就是外部程序。' },
+        { t: '"C:\\我的 文件"', title: '参数 ①：源路径（带引号）', desc: '第一个参数：从哪里复制。引号是必须的——路径里含空格，不加引号会被分词器切成 "C:\\我的" 和 "文件" 两截，直接报错。', tip: '铁律：路径有空格 → 套双引号。没空格加不加都行。' },
+        { t: 'D:\\备份', title: '参数 ②：目标路径', desc: '第二个参数：复制到哪里。robocopy 规定"源在前、目标在后"，顺序错了会把方向搞反。', tip: '看不懂某命令的参数顺序？/? 帮助里都有示意图，别猜。' },
+        { t: '/E', title: '开关 /E：含子目录（含空目录）', desc: '以 / 开头的叫开关（option/flag），用来微调命令行为。/E = 连子目录一起复制，空的也要。', tip: '开关一般不分先后：/E /MIR 等价 /MIR /E。' },
+        { t: '/MIR', title: '开关 /MIR：镜像 = 完全一致', desc: 'mirror 的缩写：让目标跟源长得一模一样——源里删了的，目标也删掉。备份神器，也是"手滑毁数据"第一名，先看阶段②的安全警示再用。', tip: '/MIR 隐含 /E，两者同时写不报错，但 /E 就多余了。' },
+        { t: '/R:2 /W:3', title: '带值开关：/R 重试次数 /W 重试间隔', desc: '有的开关后面跟值，用冒号连接。/R:2 = 失败最多重试 2 次（默认 100 万次！），/W:3 = 每次间隔 3 秒。', tip: 'robocopy 默认 /R:1000000，网络备份不加这两个参数会卡到怀疑人生。' },
+        { t: '> log.txt', title: '重定向 &gt;：输出写进文件', desc: '不属于 robocopy，是 CMD 的语法：把屏幕输出改道写进 log.txt（覆盖写）。', tip: '阶段③整章都在讲 &gt; &gt;&gt; 2&gt;&amp;1，这是命令行的超能力。' },
+        { t: '2>&1', title: '重定向 2&gt;&amp;1：错误也写进去', desc: '2 代表错误输出流，2>&1 = 把错误流并入 1（正常输出流），于是错误也一起进了 log.txt。', tip: '记法：1=正常，2=报错。2&gt;&amp;1 读作"2 并到 1"。' }
+      ]
+    },
+    {
+      line: 'taskkill /IM WeChat.exe /F',
+      parts: [
+        { t: 'taskkill', title: '程序名：结束任务的工具', desc: '外部程序 taskkill.exe，专职"杀进程"。PowerShell 里对应 Stop-Process，但 taskkill 在两个 shell 里都能用。', tip: '网页版模拟器在阶段⑤等你，先来体验一下。' },
+        { t: '/IM', title: '开关 /IM：按映像名（文件名）杀', desc: 'Image Name 的缩写：告诉 taskkill 后面跟的是进程的 exe 名字。另一种杀法是 /PID 按进程号杀。', tip: '/IM 杀的是"所有叫这个名字的进程"，微信多开会全灭。' },
+        { t: 'WeChat.exe', title: '参数：进程名', desc: '要杀的进程的可执行文件名。怎么知道叫什么？任务管理器 → 详细信息，或 tasklist 命令查。', tip: '名字要写全，少个 .exe 就"没有找到进程"。' },
+        { t: '/F', title: '开关 /F：强制（force）', desc: '不加 /F 是"礼貌地请它退出"（它会弹窗问你要不要保存），程序卡死时根本不理你；/F 直接拔电源式强杀，未保存数据会丢。', tip: '日常先不加 /F，程序装死再上 /F。' }
+      ]
+    }
+  ];
+  var src = document.getElementById('anat-src');
+  var title = document.getElementById('anat-title');
+  var desc = document.getElementById('anat-desc');
+  var tip = document.getElementById('anat-tip');
+  var eg = document.getElementById('anat-eg');
+  var parts = EXAMPLES[0].parts;
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function renderBox() {
+    src.innerHTML = parts.map(function (p, i) {
+      return '<span class="anat" data-i="' + i + '">' + esc(p.t) + '</span>';
+    }).join(' ');
+  }
+  function select(i) {
+    src.querySelectorAll('.anat').forEach(function (s) { s.classList.toggle('on', +s.dataset.i === i); });
+    title.textContent = parts[i].title;
+    desc.textContent = parts[i].desc;
+    if (parts[i].tip) { tip.hidden = false; tip.innerHTML = '<b>实践提示：</b>' + parts[i].tip; }
+    else tip.hidden = true;
+  }
+  src.addEventListener('click', function (e) {
+    var s = e.target.closest('.anat');
+    if (s) select(+s.dataset.i);
+  });
+  eg.innerHTML = EXAMPLES.map(function (ex, i) {
+    return '<button class="opt' + (i === 0 ? ' correct' : '') + '" type="button" data-e="' + i + '">' + esc(ex.line.split(' ')[0]) + (i === 0 ? '（备份）' : '（杀进程）') + '</button>';
+  }).join('');
+  eg.addEventListener('click', function (e) {
+    var b = e.target.closest('.opt');
+    if (!b) return;
+    eg.querySelectorAll('.opt').forEach(function (x) { x.classList.remove('correct'); });
+    b.classList.add('correct');
+    parts = EXAMPLES[+b.dataset.e].parts;
+    renderBox(); select(0);
+  });
+  renderBox(); select(0);
+})();
+
+/* ============ 3. 模拟终端 ============ */
+(function () {
+  var out = document.getElementById('mt-out');
+  var input = document.getElementById('mt-in');
+  var promptEl = document.getElementById('mt-prompt');
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  // 虚拟硬盘（hidden: true 表示隐藏文件）
+  var drives = {
+    'C:': {
+      cwd: ['Users', 'you'],
+      root: {
+        'Users': { 'you': { 'Desktop': { '游戏攻略.txt': '第一关：先学会打开终端！' }, 'Documents': { '简历.docx': '<二进制文件>', '账本.xlsx': '<二进制文件>' } } },
+        '练习': { 'todo.txt': '1. 学完命令行学院\n2. 给妈的照片做备份\n3. 找出谁占了我的端口', '笔记.md': '# 学习笔记\n- 命令不区分大小写\n- /? 能看帮助\n- 路径带空格要加引号' },
+        'Windows': { 'System32': { 'cmd.exe': '', 'robocopy.exe': '', 'ipconfig.exe': '', 'notepad.exe': '' } },
+        'pagefile.sys': { hidden: true, content: '<系统文件>' },
+        '$RECYCLE.BIN': { hidden: true, dir: {} }
+      }
+    },
+    'D:': {
+      cwd: [],
+      root: { '备份': {}, '电影': { '肖申克的救赎.mp4': '<二进制文件>' } }
+    }
+  };
+  var curDrive = 'C:';
+  var history = [], hIdx = -1;
+
+  function drive() { return drives[curDrive]; }
+  function cwdStr() { return curDrive + '\\' + drive().cwd.join('\\'); }
+  function promptStr() { return cwdStr() + '>'; }
+  function nodeAt(dKey, parts) {
+    var n = drives[dKey].root;
+    for (var i = 0; i < parts.length; i++) {
+      if (n[parts[i]] && (n[parts[i]].dir || !n[parts[i]].content !== undefined)) {
+        n = n[parts[i]].dir !== undefined ? n[parts[i]].dir : n[parts[i]];
+        if (typeof n !== 'object') return null;
+      } else if (typeof n[parts[i]] === 'object' && n[parts[i]] !== null) {
+        n = n[parts[i]];
+      } else return null;
+    }
+    return n;
+  }
+  function resolve(dKey, p) {
+    var base = drives[dKey].cwd.slice();
+    var segs = p.split(/[\\\/]+/).filter(function (s) { return s !== '' && s !== '.'; });
+    var i = 0;
+    if (segs.length && /^[A-Za-z]:$/.test(segs[0])) { dKey = segs[0].toUpperCase(); base = []; i = 1; }
+    else if (p[0] === '\\' || p[0] === '/') { base = []; }
+    for (; i < segs.length; i++) {
+      if (segs[i] === '..') base.pop();
+      else base.push(segs[i]);
+    }
+    return { d: dKey, parts: base };
+  }
+  function print(html) {
+    var div = document.createElement('div');
+    div.innerHTML = html;
+    out.appendChild(div);
+    out.scrollTop = out.scrollHeight;
+  }
+  function printLine(text, cls) {
+    print('<span' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(text) + '</span>');
+  }
+  function refreshPrompt() { promptEl.textContent = promptStr(); }
+
+  function listDir(parts, flags) {
+    var node = nodeAt(curDrive, parts);
+    if (!node) { printLine('系统找不到指定的路径。', 'err'); return; }
+    var names = Object.keys(node);
+    var showAll = flags.indexOf('/a') >= 0;
+    var bare = flags.indexOf('/b') >= 0;
+    var rows = [];
+    names.forEach(function (n) {
+      var v = node[n];
+      var isHidden = v && v.hidden;
+      if (isHidden && !showAll) return;
+      var isDir = v.dir !== undefined;
+      rows.push({ name: n, dir: isDir, size: isDir ? '' : String((v.content || '').length * 3 + 128) });
+    });
+    if (!rows.length) { printLine('找不到文件', 'cm'); return; }
+    if (bare) { rows.forEach(function (r) { printLine(r.name, r.dir ? 'ok' : ''); }); return; }
+    printLine(' ' + cwdStr() + ' 的目录', 'hl');
+    print('');
+    rows.forEach(function (r) {
+      print(esc('2026/10/26  09:30    ' + (r.dir ? '<DIR>          ' : '      ' + r.size + ' ')) +
+            (r.dir ? '<span class="ok">' + esc(r.name) + '</span>' : esc(r.name)));
+    });
+    var nf = rows.filter(function (r) { return !r.dir; }).length;
+    var nd = rows.filter(function (r) { return r.dir; }).length;
+    print('');
+    printLine('               ' + nf + ' 个文件' + (nd ? '，' + nd + ' 个目录' : ''));
+  }
+
+  function treeAt(parts) {
+    var node = nodeAt(curDrive, parts);
+    if (!node) { printLine('系统找不到指定的路径。', 'err'); return; }
+    printLine(cwdStr());
+    (function walk(n, prefix) {
+      var names = Object.keys(n).filter(function (k) { return !(n[k] && n[k].hidden); });
+      names.forEach(function (k, i) {
+        var last = i === names.length - 1;
+        var v = n[k];
+        var isDir = v.dir !== undefined;
+        print('<span class="cm">' + esc(prefix + (last ? '└─ ' : '├─ ')) + '</span>' + (isDir ? '<span class="ok">' + esc(k) + '</span>' : esc(k)));
+        if (isDir) walk(v.dir, prefix + (last ? '   ' : '│  '));
+      });
+    })(node, '');
+  }
+
+  function run(raw) {
+    var line = raw.trim();
+    print('<span class="pr">' + esc(promptStr()) + '</span> ' + esc(raw));
+    if (!line) return;
+    history.push(line); hIdx = history.length;
+
+    var tokens = line.match(/(?:[^\s"]+"[^"]*"|[^\s"]+|"[^"]*")+/g) || [];
+    var cmd = (tokens[0] || '').toLowerCase();
+    var args = tokens.slice(1).map(function (t) { return t.replace(/^"|"$/g, ''); });
+    var flags = args.filter(function (a) { return a[0] === '/'; }).map(function (a) { return a.toLowerCase(); });
+    var rest = args.filter(function (a) { return a[0] !== '/'; });
+
+    if (cmd === 'exit') { printLine('模拟终端已退出。刷新页面可再来——记得去真终端练！', 'ok'); input.disabled = true; input.placeholder = '已退出'; return; }
+    else if (cmd === 'help') {
+      print('<span class="cm">支持的命令（与真实 CMD 同名同义）：</span>');
+      print('dir      列目录（试 /a 显示隐藏 /b 简洁模式）    cd [路径]  切换目录（跨盘用 cd /d）');
+      print('type     看文本文件内容                          tree       目录树');
+      print('echo     打印文字                                cls        清屏');
+      print('ver / date / time / whoami / hostname              系统信息类');
+      print('ipconfig 看网卡配置    ping 主机    systeminfo 系统概要');
+      print('命令 /?  查某命令用法（试 dir /?）               exit       退出');
+    }
+    else if (cmd === 'dir' || cmd === 'cd' || cmd === 'echo' || cmd === 'type') {
+      if (flags.indexOf('/?') >= 0) {
+        var usage = {
+          dir: 'DIR [/a] [/b] [路径]\n  /a  显示所有文件（包括隐藏）\n  /b  只显示名字，不要头尾信息',
+          cd: 'CD [/d] [路径]\n  无参数 = 显示当前目录\n  ..   = 上一级    \\ = 盘根\n  /d   = 切换目录时连盘符一起换',
+          echo: 'ECHO [文字]\n  把文字打印到屏幕（阶段③学它怎么写进文件）',
+          type: 'TYPE [文件]\n  显示文本文件内容。对二进制文件会输出乱码，别怕。'
+        };
+        usage[cmd].split('\n').forEach(function (l) { printLine(l, 'cm'); });
+      }
+      else if (cmd === 'dir') { listDir(resolve(curDrive, rest[0] || '.').parts, flags); }
+      else if (cmd === 'cd') {
+        if (!rest[0]) { printLine(cwdStr()); }
+        else {
+          var r = resolve(curDrive, rest[0]);
+          var target = nodeAt(r.d, r.parts);
+          if (!target || target.dir !== undefined && Object.keys(target).length === 0 && r.parts.length === 0) {
+            if (nodeAt(r.d, r.parts) === null && r.parts.length) printLine('系统找不到指定的路径。', 'err');
+            else { /* 空目录允许 */ }
+          }
+          var node = nodeAt(r.d, r.parts);
+          var isRoot = r.parts.length === 0;
+          if (!node && !isRoot) { printLine('系统找不到指定的路径。', 'err'); }
+          else if (r.d !== curDrive && flags.indexOf('/d') < 0) {
+            drives[r.d].cwd = r.parts; /* 真实 CMD 行为：只换该盘的"当前目录"，人不动 */
+            if (r.parts.length === 0) drives[r.d].cwd = [];
+          }
+          else { curDrive = r.d; drives[r.d].cwd = r.parts; }
+        }
+      }
+      else if (cmd === 'echo') { printLine(args.length ? args.join(' ') : 'ECHO 处于打开状态。'); }
+      else if (cmd === 'type') {
+        if (!rest[0]) printLine('用法: TYPE [文件名]', 'cm');
+        else {
+          var rr = resolve(curDrive, rest[0]);
+          var n2 = nodeAt(rr.d, rr.parts);
+          if (!n2 || typeof n2 === 'object' && n2.dir !== undefined) printLine('系统找不到指定的文件 ' + rest[0] + '。', 'err');
+          else {
+            var content = n2.content !== undefined ? n2.content : '';
+            if (!content) printLine('<空文件或二进制，屏幕上会是一堆乱码——真实终端里也会这样>', 'cm');
+            else content.split('\n').forEach(function (l) { printLine(l); });
+          }
+        }
+      }
+    }
+    else if (cmd === 'tree') { treeAt(resolve(curDrive, rest[0] || '.').parts); }
+    else if (cmd === 'cls') { out.innerHTML = ''; }
+    else if (cmd === 'ver') { printLine('Microsoft Windows [版本 10.0.22631.4460]（模拟）'); }
+    else if (cmd === 'date') { printLine('当前日期: 2026/10/26 周一'); }
+    else if (cmd === 'time') { printLine('当前时间:  9:41:23.56'); }
+    else if (cmd === 'whoami') { printLine('desktop-abc123\\you'); }
+    else if (cmd === 'hostname') { printLine('DESKTOP-ABC123'); }
+    else if (cmd === 'ipconfig') {
+      printLine('Windows IP 配置（模拟输出）');
+      print('');
+      printLine('以太网适配器 以太网:');
+      printLine('   IPv4 地址 . . . . . . . . . . . . : 192.168.1.102');
+      printLine('   子网掩码  . . . . . . . . . . . . : 255.255.255.0');
+      printLine('   默认网关. . . . . . . . . . . . . : 192.168.1.1');
+    }
+    else if (cmd === 'ping') {
+      var host = rest[0] || 'baidu.com';
+      printLine('正在 Ping ' + host + ' [110.242.68.66] 具有 32 字节的数据（模拟）:');
+      print('来自 110.242.68.66 的回复: 字节=32 时间=12ms TTL=52\n来自 110.242.68.66 的回复: 字节=32 时间=11ms TTL=52\n来自 110.242.68.66 的回复: 字节=32 时间=13ms TTL=52\n来自 110.242.68.66 的回复: 字节=32 时间=11ms TTL=52');
+      print('');
+      printLine('数据包: 已发送 = 4，已接收 = 4，丢失 = 0 (0% 丢失)', 'ok');
+    }
+    else if (cmd === 'systeminfo') {
+      printLine('主机名:           DESKTOP-ABC123');
+      printLine('OS 名称:          Microsoft Windows 11 专业版');
+      printLine('OS 版本:          10.0.22631 暂缺 Build 22631');
+      printLine('系统类型:         x64-based PC');
+      printLine('物理内存总量:     16,384 MB');
+      printLine('……（模拟输出，真机输出更长）');
+    }
+    else {
+      printLine("'" + (tokens[0] || '') + "' 不是内部或外部命令，也不是可运行的程序\n或批处理文件。", 'err');
+      print('<span class="cm">（真实 CMD 就报这个错。可能是拼错、或它不在 PATH 里。）</span>');
+    }
+    refreshPrompt();
+  }
+
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { run(input.value); input.value = ''; }
+    else if (e.key === 'ArrowUp') {
+      if (hIdx > 0) { hIdx--; input.value = history[hIdx]; }
+      e.preventDefault();
+    } else if (e.key === 'ArrowDown') {
+      if (hIdx < history.length - 1) { hIdx++; input.value = history[hIdx]; }
+      else { hIdx = history.length; input.value = ''; }
+      e.preventDefault();
+    }
+  });
+  document.getElementById('miniTerm').addEventListener('click', function (e) {
+    if (window.getSelection().toString()) return;
+    input.focus();
+  });
+  print('<span class="cm">命令行学院 · 模拟终端 —— 这里的一切都是假的，随便折腾。</span>');
+  print('<span class="cm">提示：点下方输入行开始。输入 help 查看支持的命令。</span>');
+  print('');
+  refreshPrompt();
+})();
+
+/* ============ 4. 小测验 ============ */
+(function () {
+  var QUIZ = [
+    {
+      q: '1️⃣ 在 CMD 里输入 Get-Process 报错"不是内部或外部命令"。最可能的原因是？',
+      opts: ['需要管理员权限', 'Get-Process 是 PowerShell 的 cmdlet，CMD 不认识它', '电脑中毒了', '拼写一定错了'],
+      ans: 1,
+      why: 'CMD 只认 Windows 命令和 .exe 程序；Get-Process 是 PowerShell 专属的 cmdlet。反过来，CMD 的命令（dir、ipconfig）在 PowerShell 里大多能跑。'
+    },
+    {
+      q: '2️⃣ dir、echo、cls 这些"不需要 .exe 文件就能跑"的命令，学名叫？',
+      opts: ['宏命令', '脚本', '内部命令（内置在 cmd.exe 里）', '批处理'],
+      ans: 2,
+      why: '它们编译在 cmd.exe 内部，输 where dir 会发现"找不到文件"；而 ipconfig、robocopy 是 System32 下的独立 .exe（外部程序），where ipconfig 能找到路径。'
+    },
+    {
+      q: '3️⃣ 在 C 盘输入 cd D:\\资料 后提示符纹丝不动。正确的吐槽是？',
+      opts: ['命令打错了，应该没这种用法', '这是真实行为：cd 只改了 D 盘的"当前目录"，人还在 C 盘。想跳过去要 cd /d D:\\资料 或先输 d:', 'D 盘坏了', '必须以管理员身份运行'],
+      ans: 1,
+      why: 'CMD 里每个盘符各记一个"当前目录"。cd 跨盘时只悄悄改对方盘的记录，加 /d 才真正跳过去。这是 CMD 最著名的反直觉设计之一。'
+    }
+  ];
+  var root = document.getElementById('quiz');
+  QUIZ.forEach(function (item, qi) {
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.style.marginBottom = '12px';
+    card.innerHTML = '<h3>' + item.q + '</h3><div class="opts"></div><div class="explain" hidden></div>';
+    var opts = card.querySelector('.opts');
+    var exp = card.querySelector('.explain');
+    item.opts.forEach(function (o, oi) {
+      var b = document.createElement('button');
+      b.className = 'opt';
+      b.type = 'button';
+      b.textContent = o;
+      b.addEventListener('click', function () {
+        opts.querySelectorAll('.opt').forEach(function (x) { x.classList.remove('correct', 'wrong'); });
+        if (oi === item.ans) { b.classList.add('correct'); exp.className = 'explain good'; }
+        else { b.classList.add('wrong'); opts.children[item.ans].classList.add('correct'); exp.className = 'explain bad'; }
+        exp.hidden = false;
+        exp.textContent = item.why;
+      });
+      opts.appendChild(b);
+    });
+    root.appendChild(card);
+  });
+})();
+</script>
+</body>
+</html>

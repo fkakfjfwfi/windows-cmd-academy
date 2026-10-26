@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段④ 网络诊断 —— 断网自己修 · 命令行学院</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="bar">
+    <span class="brand"><span class="logo">&gt;_</span>命令行学院</span>
+    <nav class="nav">
+      <a href="index.html">课程总览</a>
+      <a href="stage1.html">① 终端入门</a>
+      <a href="stage2.html">② 文件与目录</a>
+      <a href="stage3.html">③ 文本与管道</a>
+      <a href="stage4.html">④ 网络诊断</a>
+      <a href="stage5.html">⑤ 系统管理</a>
+      <a href="stage6.html">⑥ PowerShell 与脚本</a>
+      <a href="cheatsheet.html">⌨ 速查表</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" style="padding:30px 32px">
+    <span class="tag">阶段 ④ · 预计 1 天</span>
+    <h1 style="font-size:24px">网络诊断 —— 断网自己修</h1>
+    <p class="lead">阶段目标：断网不慌，用"四级 ping"定位问题出在哪一层；看懂 ipconfig / netstat / tracert 输出的每一行；端口被占会追凶。</p>
+    <div class="pwrap">
+      <div class="progress"><div class="fill" data-progress-bar="4"></div></div>
+      <span class="plabel" data-progress-label="4"></span>
+    </div>
+  </section>
+
+  <!-- ============ 互动1：排障决策树 ============ -->
+  <section class="section">
+    <h2>互动 1 · 网络排障决策树（四级 ping 定位法）<span class="chip" data-stage-progress="4"></span></h2>
+    <p class="muted">这是网管都在用的排查思路：<b>从里到外，逐层排除</b>——先测自己，再测路由器，再测外网，最后测域名解析。哪一层断的，处方就开在哪一层。先选一个"故障剧本"，再逐关执行。</p>
+    <div class="card">
+      <h3>🎭 故障剧本（可随时切换）</h3>
+      <div class="opts" id="dx-scen"></div>
+      <div class="dx" id="dx-steps" style="margin-top:16px"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+        <button class="btn primary" type="button" id="dx-next">▶ 执行下一项</button>
+        <button class="btn" type="button" id="dx-reset">⟲ 重置</button>
+        <span class="muted" id="dx-state" style="align-self:center"></span>
+      </div>
+      <div id="dx-fix"></div>
+    </div>
+    <div class="callout info"><b>为什么是这个顺序？</b>127.0.0.1 是"自己打给自己"的环回地址，完全不经过网卡和网线；192.168.1.1 是家里路由器（网关）；223.5.5.5 是外网真实 IP（阿里公共 DNS，直连 IP 不经过域名解析）；www.baidu.com 则要走完整的 DNS 解析。<b>哪一关开始失败，问题就锁死在哪一层。</b></div>
+  </section>
+
+  <!-- ============ 互动2：命令输出速读卡 ============ -->
+  <section class="section">
+    <h2>互动 2 · 命令输出速读卡（每一行都是情报）</h2>
+    <p class="muted">四个网络必看命令的真实输出（教育版模拟数据）。<b>点击任意一行</b>，右侧告诉你这一行在说什么。</p>
+    <div class="tabs">
+      <button class="tab active" data-nt="ipconfig" type="button">ipconfig /all</button>
+      <button class="tab" data-nt="netstat" type="button">netstat -ano</button>
+      <button class="tab" data-nt="tracert" type="button">tracert</button>
+      <button class="tab" data-nt="nslookup" type="button">nslookup</button>
+    </div>
+    <div class="lab-grid">
+      <div style="background:var(--code-bg);border-radius:10px;padding:12px 18px;font-family:Consolas,monospace;font-size:13px;line-height:1.8" id="nt-lines"></div>
+      <div class="card">
+        <h3 id="nt-title" style="color:var(--brand)">👆 点左边任意一行</h3>
+        <p id="nt-desc">这些命令的输出初看像天书，其实是格式化的情报表。学会逐行读，断网时你就有了"透视眼"。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 互动3：端口追凶 ============ -->
+  <section class="section">
+    <h2>互动 3 · 谁占了我的 8080？（连环追凶三步曲）</h2>
+    <p class="muted">跑个本地服务，报错"端口被占用"？这是每个开发者都会遇到的名场面。跟着三步走，30 秒揪出真凶。点「开始追凶」逐步执行。</p>
+    <div class="card">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn primary" type="button" id="ks-next">🔍 开始追凶</button>
+        <button class="btn" type="button" id="ks-reset">⟲ 重置</button>
+      </div>
+      <div class="term" style="margin-top:12px">
+        <div class="term-bar">
+          <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+          <span class="ttitle">端口追凶 · 模拟终端</span>
+        </div>
+        <div class="term-body" id="ks-out"></div>
+      </div>
+      <div id="ks-choice" style="margin-top:10px"></div>
+      <div class="explain" id="ks-exp" hidden></div>
+    </div>
+  </section>
+
+  <!-- ============ 互动4：参数速览表 ============ -->
+  <section class="section">
+    <h2>常用网络命令参数速览</h2>
+    <div class="card">
+      <table class="tbl">
+        <thead><tr><th>命令</th><th>干什么</th><th>常用姿势</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">ping</code></td><td>测连通性和延迟</td><td><code class="inline">ping -t baidu.com</code> 持续 ping（Ctrl+C 停）；<code class="inline">ping -n 4</code> 只发 4 个包；<code class="inline">ping -l 1024</code> 改包大小测大包</td></tr>
+          <tr><td><code class="inline">tracert</code></td><td>追踪到目标经过的每一跳路由</td><td><code class="inline">tracert -d baidu.com</code>（-d 不解析主机名，快很多）</td></tr>
+          <tr><td><code class="inline">ipconfig</code></td><td>看/管本机 IP 配置</td><td><code class="inline">/all</code> 全部详情；<code class="inline">/release</code> + <code class="inline">/renew</code> 重新租 IP；<code class="inline">/flushdns</code> 清 DNS 缓存</td></tr>
+          <tr><td><code class="inline">nslookup</code></td><td>查域名解析出哪个 IP</td><td><code class="inline">nslookup baidu.com</code>；指定 DNS 查：<code class="inline">nslookup baidu.com 223.5.5.5</code></td></tr>
+          <tr><td><code class="inline">netstat</code></td><td>看本机所有网络连接</td><td><code class="inline">netstat -ano | findstr :8080</code>（-a 全部 -n 数字 -o 带 PID）</td></tr>
+          <tr><td><code class="inline">arp -a</code></td><td>看局域网里"谁在线"（IP↔MAC 对照表）</td><td>直接跑，列出同网段所有活跃设备</td></tr>
+          <tr><td><code class="inline">getmac</code></td><td>查本机网卡 MAC 地址</td><td>直接跑；配 <code class="inline">/v</code> 看详细信息</td></tr>
+          <tr><td><code class="inline">netsh wlan</code></td><td>WiFi 管理</td><td><code class="inline">netsh wlan show profile name="WiFi名" key=clear</code> 查看已连 WiFi 的密码（关键内容一栏）</td></tr>
+          <tr><td><code class="inline">curl</code></td><td>发 HTTP 请求（Win10 1803+ 自带）</td><td><code class="inline">curl -I https://baidu.com</code> 只看响应头；<code class="inline">curl -L</code> 跟随跳转</td></tr>
+          <tr><td><code class="inline">pathping</code></td><td>ping + tracert 合体，统计每跳丢包率</td><td><code class="inline">pathping baidu.com</code>（跑得慢但信息全）</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn"><b>小提醒：</b>查 WiFi 密码只能查"这台电脑连过的"；<code class="inline">ping -t</code> 忘了停会一直跑下去，Ctrl+C 是刹车。</div>
+    </div>
+  </section>
+
+  <!-- ============ 打卡清单 ============ -->
+  <section class="section">
+    <h2>知识点打卡清单 <span class="chip" data-stage-progress="4"></span></h2>
+    <div class="card check">
+      <label><input type="checkbox" id="s4-1" data-persist><span>能指出 <code class="inline">ipconfig /all</code> 里的关键字段：IPv4 地址、子网掩码、默认网关、DNS 服务器、MAC 地址</span></label>
+      <label><input type="checkbox" id="s4-2" data-persist><span>掌握四级 ping 排障法：<code class="inline">127.0.0.1 → 网关 → 223.5.5.5 → 域名</code>，能说清每一关测什么</span></label>
+      <label><input type="checkbox" id="s4-3" data-persist><span>会用 ping 的 <code class="inline">-t / -n / -l</code> 和 tracert 的 <code class="inline">-d</code>，能读懂 tracert 的"每跳 3 个时间"</span></label>
+      <label><input type="checkbox" id="s4-4" data-persist><span>会用 <code class="inline">netstat -ano | findstr :端口</code> 找 PID，再用 <code class="inline">tasklist</code> 查进程名，最后 <code class="inline">taskkill /PID xx /F</code> 处置</span></label>
+      <label><input type="checkbox" id="s4-5" data-persist><span>会用 nslookup 验证解析、<code class="inline">ipconfig /flushdns</code> 清缓存，知道"非权威应答"是什么</span></label>
+      <label><input type="checkbox" id="s4-6" data-persist><span>掌握实用杂技：<code class="inline">netsh wlan show profile</code> 查 WiFi 密码、<code class="inline">arp -a</code> 看局域网设备、<code class="inline">curl -I</code> 看响应头</span></label>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="grid g2">
+      <div class="card">
+        <h3>🎯 本阶段动手任务（回到你的真电脑）</h3>
+        <p>1. 在真机上完整跑一遍四级 ping（127.0.0.1 → 网关 → 223.5.5.5 → baidu.com），每级截图记录延迟；<br>
+           2. <code class="inline">ipconfig /all</code> 找出你家网关、DNS、本机 MAC，对照速读卡读一遍；<br>
+           3. 故意起个占 8080 端口的程序，用三步追凶把它找出来（别乱杀系统进程）；<br>
+           4. 查一个你已经连过的 WiFi 密码：<code class="inline">netsh wlan show profile name="名字" key=clear</code>；<br>
+           5. <code class="inline">tracert baidu.com</code> 数一数到百度要几跳。</p>
+      </div>
+      <div class="card">
+        <h3>📚 资源</h3>
+        <p>• <a href="https://learn.microsoft.com/zh-cn/windows-server/administration/windows-commands/windows-commands" target="_blank" rel="noopener">微软官方 · 网络命令大全（ipconfig/ping/netstat 等）</a><br>
+           • <a href="https://www.cloudflare.com/zh-cn/learning/dns/what-is-dns/" target="_blank" rel="noopener">Cloudflare · 什么是 DNS？（原理科普）</a><br>
+           • <a href="https://ss64.com/nt/" target="_blank" rel="noopener">SS64 · Windows CMD 命令参考</a><br>
+           • <a href="https://cloud.tencent.com/developer/article/1496450" target="_blank" rel="noopener">腾讯云 · CMD 命令大全速查</a></p>
+        <div class="callout ok"><b>通关标准：</b>家人喊"断网了"，你不重启大法一梭子，而是先跑四级 ping，指着输出说清"问题出在哪一层、该重启路由器还是换 DNS"——这就是本阶段的毕业证。</div>
+      </div>
+    </div>
+  </section>
+
+  <p style="margin-top:30px">
+    <a class="btn" href="stage3.html">← 上一阶段：文本与管道</a>
+    <a class="btn" href="index.html">课程总览</a>
+    <a class="btn primary" href="stage5.html">下一阶段：系统管理 →</a>
+  </p>
+</main>
+
+<footer class="foot">阶段 ④ · 网络诊断 · 命令行学院</footer>
+<script src="assets/app.js"></script>
+<script>
+/* ============ 互动1：排障决策树 ============ */
+(function () {
+  var SCEN = [
+    { n: '① 一切正常', f: -1 },
+    { n: '② 本机协议栈挂了', f: 0 },
+    { n: '③ 网关/路由器问题', f: 1 },
+    { n: '④ 外网断了', f: 2 },
+    { n: '⑤ DNS 坏了', f: 3 }
+  ];
+  var STEPS = [
+    {
+      cmd: 'ping 127.0.0.1', label: '第 1 关 · 本机协议栈',
+      why: '环回地址：数据不碰网卡不碰网线，只测你电脑自己的 TCP/IP 协议栈是不是活的。',
+      pass: ['正在 Ping 127.0.0.1 具有 32 字节的数据:',
+             '来自 127.0.0.1 的回复: 字节=32 时间<1ms TTL=128',
+             '来自 127.0.0.1 的回复: 字节=32 时间<1ms TTL=128',
+             '来自 127.0.0.1 的回复: 字节=32 时间<1ms TTL=128',
+             '来自 127.0.0.1 的回复: 字节=32 时间<1ms TTL=128',
+             '',
+             '— 127.0.0.1 ping 统计信息 —',
+             '数据包: 已发送 = 4，已接收 = 4，丢失 = 0 (0% 丢失)'],
+      fail: ['正在 Ping 127.0.0.1 具有 32 字节的数据:', 'PING: 传输失败。General failure。', '', '数据包: 已发送 = 4，已接收 = 0，丢失 = 4 (100% 丢失)'],
+      fix: '<b>🩺 诊断：本机协议栈故障（很少见）</b><br>连自己都 ping 不通，问题在电脑内部网络组件。处方：<br>① 先重启电脑（解决 80% 的玄学）；<br>② 管理员终端执行 <code class="inline">netsh winsock reset</code> 和 <code class="inline">netsh int ip reset</code>，完成后<b>必须重启</b>才生效。'
+    },
+    {
+      cmd: 'ping 192.168.1.1', label: '第 2 关 · 网关（路由器）',
+      why: '网关 = 家里路由器在局域网里的门牌。它不通，说明你到路由器这段断了。',
+      pass: ['正在 Ping 192.168.1.1 具有 32 字节的数据:',
+             '来自 192.168.1.1 的回复: 字节=32 时间=1ms TTL=64',
+             '来自 192.168.1.1 的回复: 字节=32 时间=2ms TTL=64',
+             '来自 192.168.1.1 的回复: 字节=32 时间=1ms TTL=64',
+             '来自 192.168.1.1 的回复: 字节=32 时间=1ms TTL=64',
+             '',
+             '— 192.168.1.1 ping 统计信息 —',
+             '数据包: 已发送 = 4，已接收 = 4，丢失 = 0 (0% 丢失)'],
+      fail: ['正在 Ping 192.168.1.1 具有 32 字节的数据:',
+             '请求超时。', '请求超时。', '请求超时。', '请求超时。', '',
+             '— 192.168.1.1 ping 统计信息 —',
+             '数据包: 已发送 = 4，已接收 = 0，丢失 = 4 (100% 丢失)'],
+      fix: '<b>🩺 诊断：到路由器这段断了</b><br>处方：<br>① WiFi 是不是断了/连了别的网？网线是不是松了？先看 <code class="inline">ipconfig</code> 有没有拿到 192.168.1.x 的 IP；<br>② 重启光猫和路由器：拔电、等 30 秒、插回（让它们彻底冷启动）；<br>③ 浏览器开 192.168.1.1 登路由器管理页看 WAN 口状态。'
+    },
+    {
+      cmd: 'ping 223.5.5.5', label: '第 3 关 · 外网连通',
+      why: '阿里公共 DNS 的裸 IP，直连不经过域名。网关通它不通 = 路由器到运营商这段断了。',
+      pass: ['正在 Ping 223.5.5.5 具有 32 字节的数据:',
+             '来自 223.5.5.5 的回复: 字节=32 时间=9ms TTL=115',
+             '来自 223.5.5.5 的回复: 字节=32 时间=8ms TTL=115',
+             '来自 223.5.5.5 的回复: 字节=32 时间=10ms TTL=115',
+             '来自 223.5.5.5 的回复: 字节=32 时间=9ms TTL=115',
+             '',
+             '— 223.5.5.5 ping 统计信息 —',
+             '数据包: 已发送 = 4，已接收 = 4，丢失 = 0 (0% 丢失)'],
+      fail: ['正在 Ping 223.5.5.5 具有 32 字节的数据:',
+             '请求超时。', '请求超时。', '请求超时。', '请求超时。', '',
+             '— 223.5.5.5 ping 统计信息 —',
+             '数据包: 已发送 = 4，已接收 = 0，丢失 = 4 (100% 丢失)'],
+      fix: '<b>🩺 诊断：路由器正常，但出不了外网</b><br>处方：<br>① 管理员终端 <code class="inline">ipconfig /release</code> 再 <code class="inline">ipconfig /renew</code>，重新向路由器租一个 IP；<br>② 看光猫指示灯：<b>红灯 = 运营商线路故障</b>，直接报修（10000/10010/10086）；<br>③ 手机开热点给电脑连：能上网 = 运营商/路由器的锅，不能 = 电脑自己的锅。'
+    },
+    {
+      cmd: 'ping www.baidu.com', label: '第 4 关 · 域名解析（DNS）',
+      why: '前 3 关都通、这关不通 = 网络是好的，但"域名 → IP"的翻译服务挂了。注意输出里的 [IP] 就是解析成功的证据。',
+      pass: ['正在 Ping www.baidu.com [110.242.68.66] 具有 32 字节的数据:',
+             '来自 110.242.68.66 的回复: 字节=32 时间=12ms TTL=52',
+             '来自 110.242.68.66 的回复: 字节=32 时间=11ms TTL=52',
+             '来自 110.242.68.66 的回复: 字节=32 时间=13ms TTL=52',
+             '来自 110.242.68.66 的回复: 字节=32 时间=11ms TTL=52',
+             '',
+             '— www.baidu.com 的 Ping 统计信息 —',
+             '数据包: 已发送 = 4，已接收 = 4，丢失 = 0 (0% 丢失)'],
+      fail: ['Ping 请求找不到主机 www.baidu.com。', '请检查该名称，然后重试。'],
+      fix: '<b>🩺 诊断：DNS 解析故障（IP 能通，名字翻译不出来）</b><br>处方：<br>① <code class="inline">ipconfig /flushdns</code> 清掉本机 DNS 缓存再试；<br>② 网卡属性 → IPv4 → 手动填 DNS：<b>223.5.5.5</b>（阿里）或 <b>114.114.114.114</b>，别再用运营商默认的；<br>③ 验证：<code class="inline">nslookup www.baidu.com 223.5.5.5</code> 换台服务器问，能答出来就是原 DNS 的锅。'
+    }
+  ];
+  var scenEl = document.getElementById('dx-scen');
+  var stepsEl = document.getElementById('dx-steps');
+  var nextBtn = document.getElementById('dx-next');
+  var resetBtn = document.getElementById('dx-reset');
+  var stateEl = document.getElementById('dx-state');
+  var fixEl = document.getElementById('dx-fix');
+  var scen = 0, cur = 0, done = false;
+
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  scenEl.innerHTML = SCEN.map(function (s, i) {
+    return '<button class="opt' + (i === 0 ? ' correct' : '') + '" type="button" data-s="' + i + '">' + s.n + '</button>';
+  }).join('');
+  function renderSteps() {
+    stepsEl.innerHTML = STEPS.map(function (st, i) {
+      var state = i < cur ? (st.bad ? 'bad' : 'done') : (i === cur && !done ? 'on' : '');
+      return '<div class="dx-step ' + state + '"><span class="dot">' + (i + 1) + '</span>' +
+        '<b>' + st.label + '</b>　<code class="inline">' + esc(st.cmd) + '</code>' +
+        '<p class="muted" style="font-size:13px;margin:4px 0">' + st.why + '</p>' +
+        '<div class="term" style="margin:6px 0" hidden><div class="term-body" id="dxr-' + i + '" style="max-height:220px"></div></div>' +
+        '</div>';
+    }).join('');
+  }
+  function setState() {
+    if (done) {
+      var bad = STEPS.some(function (s) { return s.bad; });
+      stateEl.textContent = bad ? '❗ 已定位故障层' : '✅ 四关全绿';
+      nextBtn.disabled = true;
+    } else {
+      stateEl.textContent = '待执行：' + STEPS[cur].label;
+      nextBtn.disabled = false;
+    }
+  }
+  function run() {
+    if (done) return;
+    var i = cur, st = STEPS[i];
+    var fail = SCEN[scen].f === i;
+    st.bad = fail;
+    var body = document.getElementById('dxr-' + i);
+    var term = body.closest('.term');
+    term.hidden = false;
+    body.innerHTML = st[fail ? 'fail' : 'pass'].map(function (l) {
+      var cls = '';
+      if (l.indexOf('回复') >= 0) cls = 'ok';
+      if (l.indexOf('超时') >= 0 || l.indexOf('失败') >= 0 || l.indexOf('找不到') >= 0) cls = 'err';
+      return '<span' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(l) + '</span>';
+    }).join('\n');
+    cur++;
+    renderSteps();
+    if (fail) {
+      done = true;
+      fixEl.innerHTML = '<div class="callout warn" style="margin-top:10px">' + st.fix + '</div>';
+    } else if (cur >= STEPS.length) {
+      done = true;
+      fixEl.innerHTML = '<div class="callout ok" style="margin-top:10px"><b>🎉 四关全绿：网络链路完全正常！</b><br>问题在"最后一厘米"：浏览器代理设置（关掉代理试试）、防火墙拦了、或者网站本身挂了（换个网站验证）。如果只有某个网站打不开而四级 ping 全通——那就是网站/它家 DNS 的事，跟你无关。</div>';
+    }
+    setState();
+  }
+  function reset() {
+    scen = arguments.length ? arguments[0] : scen;
+    cur = 0; done = false;
+    STEPS.forEach(function (s) { s.bad = false; });
+    fixEl.innerHTML = '';
+    renderSteps(); setState();
+  }
+  scenEl.addEventListener('click', function (e) {
+    var b = e.target.closest('.opt');
+    if (!b) return;
+    scenEl.querySelectorAll('.opt').forEach(function (x) { x.classList.remove('correct'); });
+    b.classList.add('correct');
+    reset(+b.dataset.s);
+  });
+  nextBtn.addEventListener('click', run);
+  resetBtn.addEventListener('click', function () { reset(); });
+  reset(0);
+})();
+
+/* ============ 互动2：命令输出速读卡 ============ */
+(function () {
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  var DATA = {
+    ipconfig: {
+      lines: [
+        'Windows IP 配置',
+        '',
+        '  主机名  . . . . . . . . . . . . : DESKTOP-ABC123',
+        '  DNS 服务器  . . . . . . . . . . : 192.168.1.1',
+        '',
+        '以太网适配器 以太网:',
+        '',
+        '   连接特定的 DNS 后缀. . . . . . . : lan',
+        '   本地链接 IPv6 地址 . . . . . . . : fe80::a1b2:c3d4:e5f6:7788%12',
+        '   IPv4 地址 . . . . . . . . . . . : 192.168.1.102',
+        '   子网掩码  . . . . . . . . . . . : 255.255.255.0',
+        '   默认网关. . . . . . . . . . . . : 192.168.1.1',
+        '',
+        '无线局域网适配器 WLAN:',
+        '',
+        '   媒体状态  . . . . . . . . . . . : 媒体已断开连接',
+        '',
+        '以太网适配器 蓝牙网络连接:',
+        '',
+        '   媒体状态  . . . . . . . . . . . : 媒体已断开连接',
+        '   物理地址. . . . . . . . . . . . : 8C-16-45-3A-7B-E2'
+      ],
+      tips: [
+        '标题行。ipconfig /all 的输出按"适配器"分节——每个网卡一节。',
+        '空行是分节留白。',
+        '主机名：电脑在网络里的名字（hostname 命令直接查这个）。',
+        '<b>DNS 服务器</b>：把 www.baidu.com 翻译成 IP 的"电话簿"。通常就是路由器代劳转发；上不了网但 ping IP 通，十有八九要换它。',
+        '空行。',
+        '<b>适配器标题</b>：一块物理/虚拟网卡。有 Ethernet（网线）、WLAN（WiFi）、蓝牙、VPN 虚拟网卡等。',
+        '空行。',
+        'DNS 后缀：局域网内部域名，家里一般是路由器给的 lan/local。',
+        '<b>IPv6 地址</b>：新一代地址（fe80 开头=链路本地）。家用还用不上，看 IPv4 就行。',
+        '<b>IPv4 地址</b>：你的电脑在局域网里的"门牌号"。192.168.x.x / 10.x.x.x 是私有网段——外面看不到，路由器做翻译（NAT）。',
+        '<b>子网掩码</b>：255.255.255.0 表示前 3 段是"小区名"、最后一段是"门牌号"，同小区直接喊话，跨小区走网关。',
+        '<b>默认网关</b>：通往外网的"小区大门"= 路由器地址。四级 ping 第 2 关 ping 的就是它。',
+        '空行。',
+        'WLAN 适配器标题。',
+        '空行。',
+        '<b>媒体已断开</b>：这块网卡没插线/没连 WiFi。排查"连不上网"先看这行——连都没连，后面全免谈。',
+        '空行。',
+        '蓝牙 PAN 适配器，基本用不到。',
+        '<b>媒体已断开</b>：蓝牙这块虚拟网卡也没在用。规律：某节显示"媒体已断开"只说明那块网卡闲置，不代表网络有问题。',
+        '空行。',
+        '<b>物理地址（MAC）</b>：网卡的全球唯一身份证，48 位十六进制。路由器"设备管理"里靠它认出你的电脑。'
+      ],
+      note: '提示：ipconfig 不加 /all 只有简短三行；/all 才能看到 MAC、DHCP 租期、DNS 等完整情报。'
+    },
+    netstat: {
+      lines: [
+        '活动连接',
+        '',
+        '  协议   本地地址                外部地址                状态           PID',
+        '  TCP    127.0.0.1:5040         127.0.0.1:5040         LISTENING       5612',
+        '  TCP    0.0.0.0:8080           0.0.0.0:0              LISTENING       12345',
+        '  TCP    192.168.1.102:52344    110.242.68.66:443      ESTABLISHED     8904',
+        '  TCP    192.168.1.102:52400    203.107.1.65:443       TIME_WAIT       8904',
+        '  TCP    [::1]:1900             [::]:0                 LISTENING       9988',
+        '  UDP    127.0.0.1:1900         *:*                                    9988'
+      ],
+      tips: [
+        '标题：下面是当前所有连接。',
+        '空行。',
+        '<b>表头</b>：协议 / 本地地址 / 外部地址 / 状态 / PID。<b>记住最后一列 PID</b>——顺着它 tasklist 能查到是哪个程序。',
+        '127.0.0.1 开头 = 只接受<b>本机</b>连接，外面访问不到，很安全。5040 是 Windows 自带服务。',
+        '<b>0.0.0.0:8080 LISTENING</b>：0.0.0.0 = 在<b>所有网卡</b>上开门等客；LISTENING = 有人监听这个端口。这正是"谁占了我 8080"要抓的行——看 PID 12345。',
+        '<b>ESTABLISHED</b> = 连接已建立，正在通信。这是在跟 110.242.68.66（百度）的 443 端口（HTTPS）传数据。',
+        '<b>TIME_WAIT</b> = 连接刚关闭，系统留它再等 2~4 分钟彻底释放。刷网页刷出来的正常现象，不是泄漏。',
+        '[::1] = IPv6 的 127.0.0.1。',
+        '<b>UDP 没有"状态"</b>：UDP 是无连接协议，发出去就完事，所以状态列是空的。DNS、视频通话多用 UDP。'
+      ],
+      note: '口诀：netstat -ano | findstr :端口 —— a=全部连接，n=数字显示（不做反查，更快），o=显示 PID。'
+    },
+    tracert: {
+      lines: [
+        '通过最多 30 个跃点跟踪',
+        '到 www.baidu.com [110.242.68.66] 的路由:',
+        '',
+        '  1     1 ms     1 ms     1 ms  192.168.1.1',
+        '  2     3 ms     2 ms     3 ms  100.64.0.1',
+        '  3     6 ms     5 ms     6 ms  10.224.32.1',
+        '  4     *        8 ms     7 ms  219.158.101.122',
+        '  5     9 ms    10 ms     9 ms  110.242.68.66',
+        '',
+        '跟踪完成。'
+      ],
+      tips: [
+        '最多跟踪 30 跳——默认上限，防止无限追下去。',
+        '目标及其解析出的 IP（解析成功本身也是 DNS 工作正常的证据）。',
+        '空行。',
+        '<b>第 1 跳永远是自家路由器</b>。它 1ms 都不通？先查路由器（四级 ping 第 2 关）。',
+        '第 2 跳 100.64 开头：运营商接入网（CGNAT 运营商级 NAT），出小区了。',
+        '第 3 跳起是运营商骨干网路由器。10.x 是内网封装，正常。',
+        '<b>* 号</b> = 这一次探测没收到回应：很多路由器对探测包"已转发不应答"，一跳里 3 个时间只回 2 个很正常，只要后面跳还在继续就不用慌。',
+        '最后一跳到达目标（百度服务器）。跳数暴涨或某跳之后全 * —— 卡点就在那一跳，把路由器名丢给运营商报修。',
+        '空行。',
+        '跟踪完成，全程走通。'
+      ],
+      note: '原理：tracert 发 TTL=1,2,3… 的探测包，每个路由器在 TTL 耗尽时回话自报家门。每跳 3 个时间 = 3 次探测各自的往返耗时。加 -d 不反查主机名，快很多。'
+    },
+    nslookup: {
+      lines: [
+        '服务器:  gonglue.114dns.com',
+        'Address:  114.114.114.114',
+        '',
+        '非权威应答:',
+        '名称:    www.baidu.com',
+        'Addresses:  110.242.68.66',
+        '            110.242.68.4',
+        'Aliases:  www.a.shifen.com'
+      ],
+      tips: [
+        '<b>服务器</b>：这次替你查域名的那台 DNS 服务器（这里配的是 114DNS）。',
+        '它的 IP。',
+        '空行。',
+        '<b>非权威应答</b>：回答你的不是"百度域名的主人"，而是缓存/转发来的答案。权威应答只有管理 baidu.com 的服务器能给——日常解析基本都是非权威，正常。',
+        '<b>名称</b>：你查的域名。',
+        '<b>Addresses</b>：翻译出来的 IP，可能多个（多台服务器分摊流量）。浏览器拿它去建立连接。',
+        '第二个 IP。',
+        '<b>Aliases（别名）</b>：CNAME 链。www.baidu.com 其实是 www.a.shifen.com 的别名——大网站常用这招做 CDN 调度。'
+      ],
+      note: '用法：nslookup 域名 直接问默认 DNS；nslookup 域名 223.5.5.5 指定换一家问——两答案不同 = DNS 污染/配置有问题的经典证据。'
+    }
+  };
+  var tabs = document.querySelectorAll('[data-nt]');
+  var linesEl = document.getElementById('nt-lines');
+  var titleEl = document.getElementById('nt-title');
+  var descEl = document.getElementById('nt-desc');
+  var cur = 'ipconfig';
+  function render() {
+    var d = DATA[cur];
+    linesEl.innerHTML = d.lines.map(function (l, i) {
+      return '<div class="ln" data-i="' + i + '" style="cursor:pointer">' + (l ? esc(l) : ' ') + '</div>';
+    }).join('');
+    titleEl.textContent = '👆 点左边任意一行';
+    descEl.innerHTML = d.note;
+  }
+  linesEl.addEventListener('click', function (e) {
+    var t = e.target.closest('.ln');
+    if (!t) return;
+    linesEl.querySelectorAll('.ln').forEach(function (x) { x.classList.toggle('on', x === t); });
+    var tip = DATA[cur].tips[+t.dataset.i];
+    titleEl.textContent = DATA[cur].lines[+t.dataset.i] || '（空行）';
+    descEl.innerHTML = tip || '空行，纯排版。';
+  });
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () {
+      tabs.forEach(function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      cur = t.getAttribute('data-nt');
+      render();
+    });
+  });
+  render();
+})();
+
+/* ============ 互动3：端口追凶 ============ */
+(function () {
+  var out = document.getElementById('ks-out');
+  var choice = document.getElementById('ks-choice');
+  var exp = document.getElementById('ks-exp');
+  var nextBtn = document.getElementById('ks-next');
+  var resetBtn = document.getElementById('ks-reset');
+  var step = 0;
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function log(html) {
+    var d = document.createElement('div');
+    d.innerHTML = html;
+    out.appendChild(d);
+    out.scrollTop = out.scrollHeight;
+  }
+  function logLine(t, cls) { log('<span' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(t) + '</span>'); }
+
+  var netstatLine = null;
+  function step1() {
+    log('<span class="pr">C:\\Users\\you&gt;</span> netstat -ano | findstr :8080');
+    log('  TCP    0.0.0.0:8080           0.0.0.0:0              LISTENING       <span class="hl">12345</span>');
+    netstatLine = out.lastChild;
+    netstatLine.style.transition = 'opacity .6s';
+    log('');
+    exp.hidden = false;
+    exp.className = 'explain';
+    exp.innerHTML = '<b>第 1 步解读：</b>netstat -ano 列出所有连接，findstr :8080 只留含 8080 的行。这行说明：<b>0.0.0.0:8080 被监听中（LISTENING）</b>，最后一列 <b>PID = 12345</b>——那就是"户口号"，顺着查。';
+    step = 1;
+    nextBtn.textContent = '第 2 步 · 查 PID 是谁';
+  }
+  function step2() {
+    log('<span class="pr">C:\\Users\\you&gt;</span> tasklist | findstr "12345"');
+    log('node.exe                      12345 Console                 1    156,248 K');
+    log('');
+    exp.innerHTML = '<b>第 2 步解读：</b>拿 PID 12345 去 tasklist 里一查——真凶是 <b>node.exe</b>（内存 156 MB）。大概率是你自己（或上次没关干净）的 Node 开发服务器。看清进程名再动手，是杀进程的铁律。';
+    step = 2;
+    nextBtn.hidden = true;
+    choice.innerHTML =
+      '<h3 style="margin:6px 0">🎭 抉择：怎么处置 node.exe（PID 12345）？</h3>' +
+      '<div class="opts">' +
+      '<button class="opt" type="button" data-k="soft">taskkill /PID 12345　<span class="muted">（礼貌关闭，不带 /F）</span></button>' +
+      '<button class="opt" type="button" data-k="force">taskkill /PID 12345 /F　<span class="muted">（强制终结）</span></button>' +
+      '</div>';
+  }
+  function kill(soft) {
+    choice.innerHTML = '';
+    if (soft) {
+      log('<span class="pr">C:\\Users\\you&gt;</span> taskkill /PID 12345');
+      log('<span class="err">错误: 无法终止 PID 为 12345 的进程。</span>');
+      log('<span class="err">原因: 只能强行终止这个进程(带 /F 选项)。</span>');
+      log('');
+      exp.className = 'explain';
+      exp.innerHTML = '<b>意外吗？</b>node.exe 是<b>控制台程序</b>，不懂"礼貌关窗"那一套，所以 Windows 直接告诉你：只能带 /F 硬来。<br>反过来，记事本、浏览器这类 <b>GUI 程序</b>不带 /F 才有效——它会先问你要不要保存。<b>这就是为什么教程总让你加 /F。</b>现在试试强制模式？';
+      choice.innerHTML = '<div class="opts"><button class="opt" type="button" data-k="force">那就 /F 强制终结 →</button></div>';
+      return;
+    }
+    log('<span class="pr">C:\\Users\\you&gt;</span> taskkill /PID 12345 /F');
+    log('<span class="ok">成功: 已终止 PID 为 12345 的进程。</span>');
+    log('');
+    if (netstatLine) { netstatLine.style.opacity = '.28'; netstatLine.style.textDecoration = 'line-through'; }
+    exp.className = 'explain good';
+    exp.innerHTML = '<b>🎉 结案：</b>8080 释放了，重新跑你的服务，一次成功。<br><div class="callout warn" style="margin-top:8px"><b>⚠ 杀进程三纪律：</b>① 先 tasklist 看清进程名再杀（svchost.exe 等系统进程碰不得，强杀可能蓝屏）；② /F = 拔电源，未保存数据直接蒸发；③ 按 PID 杀比按名字杀安全——按名字（/IM）会误伤所有同名进程。</div>';
+    step = 3;
+    nextBtn.hidden = true;
+  }
+  nextBtn.addEventListener('click', function () {
+    if (step === 0) step1();
+    else if (step === 1) step2();
+  });
+  choice.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-k]');
+    if (!b) return;
+    kill(b.dataset.k === 'soft');
+  });
+  function reset() {
+    out.innerHTML = '<span class="cm">你起了个本地服务，结果报错：Error: listen EADDRINUSE: address already in use 0.0.0.0:8080 —— 端口被人占了。</span>';
+    log('');
+    choice.innerHTML = '';
+    exp.hidden = true;
+    step = 0;
+    netstatLine = null;
+    nextBtn.hidden = false;
+    nextBtn.textContent = '🔍 开始追凶';
+  }
+  resetBtn.addEventListener('click', reset);
+  reset();
+})();
+</script>
+</body>
+</html>

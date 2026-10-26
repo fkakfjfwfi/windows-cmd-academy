@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>终极速查表 · 命令行学院</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="bar">
+    <span class="brand"><span class="logo">&gt;_</span>命令行学院</span>
+    <nav class="nav">
+      <a href="index.html">课程总览</a>
+      <a href="stage1.html">① 终端入门</a>
+      <a href="stage2.html">② 文件与目录</a>
+      <a href="stage3.html">③ 文本与管道</a>
+      <a href="stage4.html">④ 网络诊断</a>
+      <a href="stage5.html">⑤ 系统管理</a>
+      <a href="stage6.html">⑥ PowerShell 与脚本</a>
+      <a href="cheatsheet.html">⌨ 速查表</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" style="padding:30px 32px">
+    <span class="tag">随查随用 · 全课程 100+ 条命令一页收齐</span>
+    <h1 style="font-size:24px">终极速查表</h1>
+    <p class="lead">六个阶段学过的命令全在这里。顶部搜索框<b>边打字边过滤</b>；点「🖨 打印」可直接打印（自动去掉导航等杂物），贴在显示器旁边当字典用。</p>
+  </section>
+
+  <!-- 吸顶搜索行（打印时自动隐藏） -->
+  <div class="filter-row noprint">
+    <input id="q" type="text" placeholder="🔍 输入关键词过滤，如：robocopy / 端口 / 进程 / 计划任务 …" autocomplete="off">
+  </div>
+  <div class="noprint" style="display:flex;align-items:center;gap:10px;margin:0 0 6px;flex-wrap:wrap">
+    <span class="muted" id="cnt" style="font-size:13px"></span>
+    <span style="flex:1"></span>
+    <button class="btn primary sm" type="button" id="btn-print">🖨 打印本页</button>
+    <a class="btn sm" href="index.html">← 课程总览</a>
+  </div>
+
+  <!-- 章节跳转 -->
+  <div class="noprint" style="margin:10px 0 4px;display:flex;gap:8px;flex-wrap:wrap">
+    <a class="chip" href="#cs1">① 文件与目录</a>
+    <a class="chip" href="#cs2">② 文本与管道</a>
+    <a class="chip" href="#cs3">③ 网络诊断</a>
+    <a class="chip" href="#cs4">④ 进程与服务</a>
+    <a class="chip" href="#cs5">⑤ 系统信息与维护</a>
+    <a class="chip" href="#cs6">⑥ 计划任务与环境变量</a>
+    <a class="chip" href="#cs7">⑦ winget 装机</a>
+    <a class="chip" href="#cs8">⑧ CMD ↔ PowerShell</a>
+    <a class="chip" href="#cs9">⑨ 快捷键与技巧</a>
+  </div>
+
+  <!-- ============ ① 文件与目录 ============ -->
+  <section data-cheat id="cs1">
+    <h2>① 文件与目录</h2>
+    <div class="card">
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">cd 目录</code></td><td>切换目录；<code class="inline">cd ..</code> 回上级，<code class="inline">cd /d D:\工具</code> 跨盘符</td><td><code class="inline">cd C:\Users\you\Desktop</code></td></tr>
+          <tr><td><code class="inline">dir</code></td><td>列目录内容；<code class="inline">/a</code> 含隐藏，<code class="inline">/o:s</code> 按大小排序，<code class="inline">/s</code> 含子目录，<code class="inline">/b</code> 只列名字</td><td><code class="inline">dir /a /o:s C:\下载</code></td></tr>
+          <tr><td><code class="inline">tree /f</code></td><td>树状展示目录（/f 连文件一起）</td><td><code class="inline">tree /f C:\项目</code></td></tr>
+          <tr><td><code class="inline">md / mkdir</code></td><td>新建目录（可一次建多级）</td><td><code class="inline">md C:\备份\2026\照片</code></td></tr>
+          <tr><td><code class="inline">rd /s /q</code></td><td>删整个目录树（/s 连内容，/q 免确认）；小心不可逆</td><td><code class="inline">rd /s /q C:\临时垃圾</code></td></tr>
+          <tr><td><code class="inline">copy 源 目标</code></td><td>复制文件（不支持目录树）</td><td><code class="inline">copy 报告.docx D:\备份\</code></td></tr>
+          <tr><td><code class="inline">xcopy /e /i</code></td><td>复制目录树（/e 含空目录，/i 目标当目录）</td><td><code class="inline">xcopy C:\网站 D:\备份\网站\ /e /i</code></td></tr>
+          <tr><td><code class="inline">robocopy 源 目标 /e</code></td><td>最强复制；/MIR 镜像（会删多余文件！）、/xo 只拷新文件、/mt:16 多线程、/r:2 /w:3 失败重试</td><td><code class="inline">robocopy "C:\我的 文件" D:\备份 /mir /r:2 /w:3</code></td></tr>
+          <tr><td><code class="inline">del /f /q 文件</code></td><td>删文件；<code class="inline">del *.tmp /s</code> 递归删一类。回收站都不进，慎用</td><td><code class="inline">del C:\日志\*.log /f /q</code></td></tr>
+          <tr><td><code class="inline">ren 旧 新</code></td><td>重命名（同目录内）</td><td><code class="inline">ren 报告-v1.docx 报告-final.docx</code></td></tr>
+          <tr><td><code class="inline">move 源 目标</code></td><td>移动 / 跨目录改名</td><td><code class="inline">move 散图\*.jpg D:\相册\</code></td></tr>
+          <tr><td><code class="inline">type 文件</code></td><td>打印文本文件内容</td><td><code class="inline">type config.txt</code></td></tr>
+          <tr><td><code class="inline">attrib +h 文件</code></td><td>改属性：+h 隐藏 / -h 取消，+r 只读</td><td><code class="inline">attrib +h 密码本.txt</code></td></tr>
+          <tr><td><code class="inline">mklink</code></td><td>建符号链接 /d 目录链接 /j junction，需管理员</td><td><code class="inline">mklink /d D:\链接 C:\真实目录</code></td></tr>
+          <tr><td>通配符</td><td><code class="inline">*</code> 任意长字符，<code class="inline">?</code> 恰好一个字符</td><td><code class="inline">dir 报告-*.docx</code> / <code class="inline">del ???.tmp</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ② 文本与管道 ============ -->
+  <section data-cheat id="cs2">
+    <h2>② 文本与管道</h2>
+    <div class="card">
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">命令 / 符号</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">命令A | 命令B</code></td><td>管道：把 A 的输出接给 B 当输入</td><td><code class="inline">type server.log | findstr ERROR | sort</code></td></tr>
+          <tr><td><code class="inline">&gt; 文件</code></td><td>输出重定向（覆盖写）</td><td><code class="inline">dir /b &gt; 清单.txt</code></td></tr>
+          <tr><td><code class="inline">&gt;&gt; 文件</code></td><td>输出重定向（追加写）</td><td><code class="inline">echo 完成 %DATE% &gt;&gt; log.txt</code></td></tr>
+          <tr><td><code class="inline">2&gt; 文件</code></td><td>只把错误输出写进文件</td><td><code class="inline">build.exe 2&gt; err.txt</code></td></tr>
+          <tr><td><code class="inline">2&gt;&amp;1</code></td><td>错误流合并进正常流</td><td><code class="inline">build.exe &gt; all.log 2&gt;&amp;1</code></td></tr>
+          <tr><td><code class="inline">&gt;nul</code></td><td>丢弃输出（黑洞）；常配 <code class="inline">2&gt;nul</code></td><td><code class="inline">ping -n 1 主机 &gt;nul 2&gt;nul</code></td></tr>
+          <tr><td><code class="inline">&lt; 文件</code></td><td>把文件内容当命令输入</td><td><code class="inline">sort &lt; 名单.txt</code></td></tr>
+          <tr><td><code class="inline">findstr "词"</code></td><td>按关键词筛行；/i 忽略大小写 /v 反选 /n 显示行号 /b 行首 /e 行尾 /c:"整个短语"</td><td><code class="inline">ipconfig /all | findstr /i "dns"</code></td></tr>
+          <tr><td><code class="inline">more</code></td><td>分页看长文本（空格翻页，Q 退出）</td><td><code class="inline">type 长日志.txt | more</code></td></tr>
+          <tr><td><code class="inline">sort</code></td><td>排序；/r 反向</td><td><code class="inline">sort 成绩.txt</code></td></tr>
+          <tr><td><code class="inline">fc 文件1 文件2</code></td><td>比较两个文件差异</td><td><code class="inline">fc 旧配置.txt 新配置.txt</code></td></tr>
+          <tr><td><code class="inline">clip</code></td><td>把输出送进剪贴板</td><td><code class="inline">ipconfig /all | clip</code></td></tr>
+          <tr><td><code class="inline">echo %errorlevel%</code></td><td>看上一条命令退出码（0 = 成功）；robocopy ≤7 都算好</td><td><code class="inline">robocopy … &amp;&amp; echo 成功</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ③ 网络诊断 ============ -->
+  <section data-cheat id="cs3">
+    <h2>③ 网络诊断</h2>
+    <div class="card">
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">ping 地址</code></td><td>测连通性；-t 不停测（Ctrl+C 停）、-n 3 只测 3 次、-4 强制 IPv4</td><td><code class="inline">ping -n 3 www.baidu.com</code></td></tr>
+          <tr><td><code class="inline">ipconfig /all</code></td><td>看网卡全貌：IP、网关、DNS、MAC；/flushdns 清 DNS 缓存；/release + /renew 重新要 IP</td><td><code class="inline">ipconfig /all</code></td></tr>
+          <tr><td><code class="inline">tracert 地址</code></td><td>逐跳追踪路径，定位断在哪一跳；-d 不解析域名更快</td><td><code class="inline">tracert -d www.baidu.com</code></td></tr>
+          <tr><td><code class="inline">nslookup 域名</code></td><td>查 DNS 解析结果（域名 → IP）</td><td><code class="inline">nslookup github.com</code></td></tr>
+          <tr><td><code class="inline">netstat -ano</code></td><td>看端口占用：-a 全部 -n 数字 -o 带 PID；配合 <code class="inline">tasklist | findstr PID</code> 找真凶</td><td><code class="inline">netstat -ano | findstr :8080</code></td></tr>
+          <tr><td><code class="inline">pathping 地址</code></td><td>ping + tracert 合体，统计每跳丢包率（较慢）</td><td><code class="inline">pathping www.baidu.com</code></td></tr>
+          <tr><td><code class="inline">arp -a</code></td><td>看局域网内"IP ↔ MAC"邻居表</td><td><code class="inline">arp -a</code></td></tr>
+          <tr><td><code class="inline">getmac</code></td><td>列出本机 MAC 地址</td><td><code class="inline">getmac /v</code></td></tr>
+          <tr><td><code class="inline">curl 地址</code></td><td>发 HTTP 请求；-I 只看响应头，Win10 1803+ 自带</td><td><code class="inline">curl -I https://example.com</code></td></tr>
+          <tr><td><code class="inline">netsh wlan show profile</code></td><td>列出连过的 Wi-Fi；加 <code class="inline">name="名" key=clear</code> 看明文密码（需管理员）</td><td><code class="inline">netsh wlan show profile name="家里WiFi" key=clear</code></td></tr>
+          <tr><td>排障顺序</td><td colspan="2">ping 网关 → ping 公网 IP → ping 域名 → 看 DNS；逐级缩小范围（阶段④决策树）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ④ 进程与服务 ============ -->
+  <section data-cheat id="cs4">
+    <h2>④ 进程与服务</h2>
+    <div class="card">
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">tasklist</code></td><td>列进程；/v 详细，按名过滤 <code class="inline">| findstr /i chrome</code></td><td><code class="inline">tasklist | findstr node</code></td></tr>
+          <tr><td><code class="inline">taskkill /pid 号 /f</code></td><td>按 PID 强杀（/f 强制，卡死必备）；/t 连子进程一起</td><td><code class="inline">taskkill /pid 12345 /f</code></td></tr>
+          <tr><td><code class="inline">taskkill /im 名 /f</code></td><td>按映像名杀（殃及所有同名进程，如全部 chrome）</td><td><code class="inline">taskkill /im notepad.exe /f</code></td></tr>
+          <tr><td><code class="inline">sc query 服务名</code></td><td>查服务状态（RUNNING / STOPPED），需管理员</td><td><code class="inline">sc query Spooler</code></td></tr>
+          <tr><td><code class="inline">sc stop / start</code></td><td>停 / 启服务（打印机抽风就重启 Spooler）</td><td><code class="inline">sc stop Spooler</code></td></tr>
+          <tr><td><code class="inline">sc config 服务 start= disabled</code></td><td>改启动类型；注意 <code class="inline">start=</code> 等号后有空格</td><td><code class="inline">sc config Spooler start= auto</code></td></tr>
+          <tr><td><code class="inline">services.msc</code></td><td>图形版服务管理器，sc 能做的它都能点</td><td>Win+R 输入 <code class="inline">services.msc</code></td></tr>
+          <tr><td><code class="inline">shutdown /s /t 0</code></td><td>关机（/r 重启，/a 取消倒计时，/t 秒数）</td><td><code class="inline">shutdown /r /t 60</code></td></tr>
+          <tr><td>红线提醒</td><td colspan="2">System(PID 4)、csrss、wininit 等<b>系统关键进程杀不得</b>；杀错轻则蓝屏重则无法开机</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ⑤ 系统信息与维护 ============ -->
+  <section data-cheat id="cs5">
+    <h2>⑤ 系统信息与维护</h2>
+    <div class="card">
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">systeminfo</code></td><td>一页看全：系统版本、内存、补丁、开机时间、网卡</td><td><code class="inline">systeminfo | findstr /i "内存 OS"</code></td></tr>
+          <tr><td><code class="inline">sfc /scannow</code></td><td>扫描修复系统文件（🔒 管理员）</td><td>系统文件损坏 / 蓝屏后先跑它</td></tr>
+          <tr><td><code class="inline">chkdsk D: /f</code></td><td>查修磁盘错误（🔒 系统盘要安排重启时修）</td><td><code class="inline">chkdsk D: /f</code></td></tr>
+          <tr><td><code class="inline">driverquery</code></td><td>列驱动程序清单</td><td><code class="inline">driverquery | more</code></td></tr>
+          <tr><td><code class="inline">powercfg /batteryreport</code></td><td>生成电池健康报告（笔记本，看实际容量 vs 设计容量）</td><td>报告在当前目录 battery-report.html</td></tr>
+          <tr><td><code class="inline">powercfg /energy</code></td><td>60 秒能耗体检，揪出费电后台（🔒）</td><td><code class="inline">powercfg /energy</code></td></tr>
+          <tr><td><code class="inline">cleanmgr</code></td><td>磁盘清理（/sagerun:1 一键清预设项）</td><td><code class="inline">cleanmgr /d C:</code></td></tr>
+          <tr><td><code class="inline">dxdiag</code></td><td> DirectX 诊断：显卡 / 声卡 / 输入设备</td><td>排查游戏画面问题第一步</td></tr>
+          <tr><td><code class="inline">ver / vol / hostname</code></td><td>系统版本 / 卷标序列号 / 计算机名，一条一个答案</td><td><code class="inline">ver</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ⑥ 计划任务与环境变量 ============ -->
+  <section data-cheat id="cs6">
+    <h2>⑥ 计划任务与环境变量</h2>
+    <div class="card">
+      <h3 style="margin-bottom:6px">schtasks 三要素：干什么 /TR、什么时候 /SC + /ST、叫什么 /TN</h3>
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">schtasks /create …</code></td><td>建计划任务；/sc daily|weekly|minute /st 时间 /tr 要跑的命令</td><td><code class="inline">schtasks /create /tn "夜间清理" /tr "C:\tools\清理.bat" /sc daily /st 23:30</code></td></tr>
+          <tr><td><code class="inline">schtasks /query /tn 名</code></td><td>查任务状态（/v 详情，/fo list 好读）</td><td><code class="inline">schtasks /query /tn "夜间清理"</code></td></tr>
+          <tr><td><code class="inline">schtasks /run /tn 名</code></td><td>立即手动跑一次（测试用）</td><td>建完必跑一次验证</td></tr>
+          <tr><td><code class="inline">schtasks /end /tn 名</code></td><td>停掉正在跑的任务</td><td><code class="inline">schtasks /end /tn "夜间清理"</code></td></tr>
+          <tr><td><code class="inline">schtasks /delete /tn 名 /f</code></td><td>删任务（/f 免确认）</td><td><code class="inline">schtasks /delete /tn "夜间清理" /f</code></td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin:12px 0 6px">环境变量</h3>
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">set 变量=值</code></td><td>临时设变量（只活在本窗口）</td><td><code class="inline">set PORT=8080</code></td></tr>
+          <tr><td><code class="inline">set</code></td><td>列出全部 / 按前缀筛（<code class="inline">set p</code>）</td><td><code class="inline">set path</code></td></tr>
+          <tr><td><code class="inline">setx 变量 值</code></td><td>永久写注册表；<b>已开的窗口看不到，重开才生效</b>；改 PATH 谨慎（有合并截断坑）</td><td><code class="inline">setx JAVA_HOME "C:\jdk-21"</code></td></tr>
+          <tr><td><code class="inline">echo %变量%</code></td><td>读变量；脚本里拼路径常用</td><td><code class="inline">cd %USERPROFILE%\Desktop</code></td></tr>
+          <tr><td><code class="inline">where 程序名</code></td><td>看命令到底命中 PATH 里哪个 exe（"找不到命令"排查神器）</td><td><code class="inline">where python</code></td></tr>
+          <tr><td><code class="inline">start 程序/文件</code></td><td>新窗口启动程序 / 用默认程序打开文件</td><td><code class="inline">start battery-report.html</code></td></tr>
+          <tr><td>常用变量</td><td colspan="2"><code class="inline">%USERPROFILE%</code> 家目录 · <code class="inline">%APPDATA%</code> 配置 · <code class="inline">%LOCALAPPDATA%</code> 缓存 · <code class="inline">%TEMP%</code> 临时 · <code class="inline">%COMPUTERNAME%</code> 电脑名 · <code class="inline">%DATE% %TIME%</code> 时间</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ⑦ winget 装机 ============ -->
+  <section data-cheat id="cs7">
+    <h2>⑦ winget 装机</h2>
+    <div class="card">
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">winget search 关键词</code></td><td>搜软件包（认准 Source: winget 官方源）</td><td><code class="inline">winget search python</code></td></tr>
+          <tr><td><code class="inline">winget install 包名</code></td><td>安装；一条命令直达官方源，告别下载站全家桶</td><td><code class="inline">winget install Git.Git</code></td></tr>
+          <tr><td><code class="inline">winget list</code></td><td>列出已装软件（含非 winget 装的）</td><td><code class="inline">winget list | findstr /i java</code></td></tr>
+          <tr><td><code class="inline">winget upgrade</code></td><td>列出可升级项；<code class="inline">--all</code> 一键全升</td><td><code class="inline">winget upgrade --all</code></td></tr>
+          <tr><td><code class="inline">winget uninstall 包名</code></td><td>卸载</td><td><code class="inline">winget uninstall 某全家桶</code></td></tr>
+          <tr><td><code class="inline">winget show 包名</code></td><td>看版本 / 发布者 / 安装包细节</td><td><code class="inline">winget show Python.Python.3.12</code></td></tr>
+          <tr><td>新装机一条龙</td><td colspan="2">Python → Git → VSCode → Notepad++，每条一个 <code class="inline">winget install</code>，最后 <code class="inline">winget upgrade --all</code>（阶段⑤有完整脚本）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ⑧ CMD ↔ PowerShell ============ -->
+  <section data-cheat id="cs8">
+    <h2>⑧ CMD ↔ PowerShell 对照</h2>
+    <div class="card">
+      <table class="tbl cheat">
+        <thead><tr><th style="width:30%">任务</th><th style="width:33%">CMD 写法</th><th>PowerShell 写法</th></tr></thead>
+        <tbody>
+          <tr><td>列目录</td><td><code class="inline">dir</code></td><td><code class="inline">Get-ChildItem</code>（别名 ls / gci）</td></tr>
+          <tr><td>切目录</td><td><code class="inline">cd 路径</code></td><td><code class="inline">Set-Location</code>（别名 cd）</td></tr>
+          <tr><td>看文件</td><td><code class="inline">type 文件</code></td><td><code class="inline">Get-Content</code>（别名 cat / gc）</td></tr>
+          <tr><td>复制 / 移动 / 删除</td><td><code class="inline">copy / move / del</code></td><td><code class="inline">Copy-Item / Move-Item / Remove-Item</code>（别名 cp / mv / rm）</td></tr>
+          <tr><td>新建目录</td><td><code class="inline">md 目录</code></td><td><code class="inline">New-Item -ItemType Directory 目录</code>（别名 mkdir）</td></tr>
+          <tr><td>清屏</td><td><code class="inline">cls</code></td><td><code class="inline">Clear-Host</code>（别名 cls）</td></tr>
+          <tr><td>列进程</td><td><code class="inline">tasklist</code></td><td><code class="inline">Get-Process</code>（别名 ps）</td></tr>
+          <tr><td>杀进程</td><td><code class="inline">taskkill /pid 1234 /f</code></td><td><code class="inline">Stop-Process -Id 1234 -Force</code></td></tr>
+          <tr><td>筛文本</td><td><code class="inline">… | findstr 词</code></td><td><code class="inline">… | Select-String 词</code>（别名 sls）</td></tr>
+          <tr><td>读环境变量</td><td><code class="inline">echo %PATH%</code></td><td><code class="inline">$env:PATH</code></td></tr>
+          <tr><td>看服务</td><td><code class="inline">sc query 服务名</code></td><td><code class="inline">Get-Service 服务名</code></td></tr>
+          <tr><td>网络命令</td><td colspan="2">ping / ipconfig / tracert / netstat 在两边都照用（PowerShell 兼容外部程序）</td></tr>
+          <tr><td>输出到文件</td><td><code class="inline">dir &gt; 清单.txt</code></td><td><code class="inline">Get-ChildItem | Out-File 清单.txt</code>（<code class="inline">&gt;</code> 也通）</td></tr>
+          <tr><td>对象管道</td><td>只有文本，靠 findstr/sort 硬切</td><td><code class="inline">Get-Process | Sort-Object CPU -Descending | Select-Object -First 5</code>——排序筛选的是"对象"不是字符串</td></tr>
+        </tbody>
+      </table>
+      <div class="callout info" style="margin-top:8px">在 PowerShell 里 CMD 命令几乎全能跑；反之不行。所以日常用 PowerShell 不亏，老脚本继续给 CMD。</div>
+    </div>
+  </section>
+
+  <!-- ============ ⑨ 快捷键与技巧 ============ -->
+  <section data-cheat id="cs9">
+    <h2>⑨ 快捷键与技巧</h2>
+    <div class="card">
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">按键 / 写法</th><th style="width:33%">作用</th><th>备注</th></tr></thead>
+        <tbody>
+          <tr><td><span class="kbd">Tab</span></td><td>自动补全文件 / 目录 / 命令名</td><td>最值得养成习惯的一个，少打字还防拼错</td></tr>
+          <tr><td><span class="kbd">↑</span> <span class="kbd">↓</span></td><td>翻历史命令</td><td>改一改重跑，不用重敲</td></tr>
+          <tr><td><span class="kbd">F7</span></td><td>弹出历史命令菜单，方向键选</td><td>找十几条前的那条特别好使</td></tr>
+          <tr><td><span class="kbd">Esc</span> / <span class="kbd">Ctrl+C</span></td><td>清空当前行 / 强停正在跑的命令</td><td>ping -t 卡住就 Ctrl+C</td></tr>
+          <tr><td>右键</td><td>老控制台里 = 粘贴（或选中即复制）</td><td>属性里开「快速编辑模式」更顺手</td></tr>
+          <tr><td>拖文件进窗口</td><td>自动填入完整路径（含引号）</td><td>路径带空格不怕忘加引号</td></tr>
+          <tr><td><code class="inline">doskey /history</code></td><td>列出本次会话历史</td><td>PowerShell 里用 <code class="inline">history</code></td></tr>
+          <tr><td><code class="inline">命令 /?</code></td><td>查任何命令的官方帮助</td><td>比背参数靠谱，Windows 命令通用</td></tr>
+          <tr><td><code class="inline">命令1 &amp;&amp; 命令2</code></td><td>前一个成功才执行后一个</td><td>对应还有 <code class="inline">||</code>（失败才执行）和 <code class="inline">&amp;</code>（顺序执行）</td></tr>
+          <tr><td><span class="kbd">Win</span>+<span class="kbd">X</span> → A</td><td>一键开管理员终端</td><td>跑 sfc / chkdsk / sc 前先提档</td></tr>
+          <tr><td>管理员怎么认</td><td>标题栏写「管理员: 命令提示符」才是；<code class="inline">net session</code> 不报错也是</td><td>普通窗口跑管理命令只会报「拒绝访问」</td></tr>
+          <tr><td>PowerShell 三板斧</td><td colspan="2"><code class="inline">Get-Help 命令 -Examples</code> 查用法 · <code class="inline">Get-Command 关键词</code> 找命令 · <code class="inline">命令 | Get-Member</code> 看对象有什么属性方法</td></tr>
+        </tbody>
+      </table>
+      <div class="callout ok" style="margin-top:8px">🎓 毕业寄语：命令行不是背出来的，是用出来的。把这页打印出来，忘什么查什么；两个星期后你会发现，大部分命令已经长在手指上了。</div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">命令行学院 · 六个阶段全部完结 · 常回来翻翻速查表，命令是用手记住的</footer>
+
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  var q = document.getElementById('q');
+  var cnt = document.getElementById('cnt');
+  var secs = [].slice.call(document.querySelectorAll('section[data-cheat]'));
+
+  /* 实时过滤：命中行保留，其余加 tr.hide；整节全空则整节隐藏；顶部显示命中数 */
+  q.addEventListener('input', function () {
+    var kw = q.value.trim().toLowerCase();
+    var hits = 0;
+    secs.forEach(function (sec) {
+      var shown = 0;
+      sec.querySelectorAll('tbody tr').forEach(function (tr) {
+        var ok = !kw || tr.textContent.toLowerCase().indexOf(kw) > -1;
+        tr.classList.toggle('hide', !ok);
+        if (ok) shown++;
+      });
+      sec.hidden = kw !== '' && shown === 0;
+      hits += shown;
+    });
+    cnt.textContent = kw === '' ? '' : ('命中 ' + hits + ' 条命令');
+  });
+
+  document.getElementById('btn-print').addEventListener('click', function () {
+    window.print();
+  });
+})();
+</script>
+
+</body>
+</html>

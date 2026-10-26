@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段③ 文本与管道 —— 数据加工厂 · 命令行学院</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="bar">
+    <span class="brand"><span class="logo">&gt;_</span>命令行学院</span>
+    <nav class="nav">
+      <a href="index.html">课程总览</a>
+      <a href="stage1.html">① 终端入门</a>
+      <a href="stage2.html">② 文件与目录</a>
+      <a href="stage3.html">③ 文本与管道</a>
+      <a href="stage4.html">④ 网络诊断</a>
+      <a href="stage5.html">⑤ 系统管理</a>
+      <a href="stage6.html">⑥ PowerShell 与脚本</a>
+      <a href="cheatsheet.html">⌨ 速查表</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" style="padding:30px 32px">
+    <span class="tag">阶段 ③ · 预计 1~2 天</span>
+    <h1 style="font-size:24px">文本与管道 —— 数据加工厂</h1>
+    <p class="lead">阶段目标：理解 | 和 &gt; 这两个改变命运的符号，会用 findstr / sort 把任何文本"加工"成你要的样子。</p>
+    <div class="pwrap">
+      <div class="progress"><div class="fill" data-progress-bar="3"></div></div>
+      <span class="plabel" data-progress-label="3"></span>
+    </div>
+  </section>
+
+  <!-- ============ 动画课堂 ============ -->
+  <section class="section">
+    <h2>🎬 动画课堂 · 《管道的一生：一滴数据的旅行》</h2>
+    <p class="muted">约 1 分钟 · ▶ 播放 / 空格暂停 / 可拖进度 / 可调速。看完你就明白：| 和 &gt; 到底差在哪，为什么屏幕会"什么都没输出"。</p>
+    <div class="lesson" id="lesson3">
+      <div class="screen"><div class="theater" id="th3">
+        <div class="row">
+          <div class="panel col" id="p3-file"><h4>📄 server.log（8 行日志）</h4>
+            <pre class="th-code" data-dyn id="p3-code"></pre>
+          </div>
+          <div class="col" style="flex:0 0 170px;max-width:170px">
+            <div class="th-pipe">
+              <div class="env" id="p3-env" data-fx>📃 日志文件</div>
+            </div>
+            <div class="note" data-dyn id="p3-flow"></div>
+          </div>
+          <div class="panel col" id="p3-panelR"><h4>🖥 屏幕上的结果</h4>
+            <div class="th-mono" data-dyn id="p3-out"></div>
+          </div>
+        </div>
+        <div class="center-x" style="margin-top:14px">
+          <span class="pill" id="p3-s1">type</span>
+          <span class="pill" id="p3-s2">| 管道</span>
+          <span class="pill" id="p3-s3">findstr</span>
+          <span class="pill" id="p3-s4">sort</span>
+          <span class="pill" id="p3-s5">&gt; 重定向</span>
+        </div>
+        <div class="note" data-dyn id="p3-note"></div>
+      </div></div>
+    </div>
+  </section>
+  <script src="assets/lesson-player.js"></script>
+  <script>
+  (function () {
+    var LOG = [
+      '2026-10-26 09:12:01 INFO  用户登录 ok=1',
+      '2026-10-26 09:12:03 ERROR 数据库连接超时',
+      '2026-10-26 09:12:07 INFO  页面加载 200',
+      '2026-10-26 09:12:09 WARN  响应偏慢 1.8s',
+      '2026-10-26 09:12:15 ERROR 磁盘写入失败 D:',
+      '2026-10-26 09:12:21 INFO  用户登出',
+      '2026-10-26 09:12:26 ERROR 缓存服务失联',
+      '2026-10-26 09:12:30 INFO  定时任务触发'
+    ].join('\n');
+    var ERRS = [
+      '2026-10-26 09:12:03 ERROR 数据库连接超时',
+      '2026-10-26 09:12:15 ERROR 磁盘写入失败 D:',
+      '2026-10-26 09:12:26 ERROR 缓存服务失联'
+    ].join('\n');
+    var SORTEDErr = [
+      '2026-10-26 09:12:03 ERROR 数据库连接超时',
+      '2026-10-26 09:12:15 ERROR 磁盘写入失败 D:',
+      '2026-10-26 09:12:26 ERROR 缓存服务失联'
+    ].join('\n');
+    var LEFTS = ['8%', '20%', '34%', '48%', '60%', '74%', '86%', '86%', '50%'];
+    var S = [
+      { d: 6, cap: '每台服务器都在写这样的日志：时间、级别、消息混成一锅粥。今天的任务：把 ERROR 的行抽出来、排好序、存成文件。在命令行里，这只需要一行命令。', set: { 'p3-code': LOG, 'p3-out': '（等待加工…）', 'p3-flow': '待命的日志文件', 'p3-note': '任务：提取 ERROR → 排序 → 存为 errors.txt' }, cls: { 'p3-file': 'on' } },
+      { d: 6, cap: '第一步：type server.log。type 把文件"倒"进屏幕——从这一刻起，它不再是一块静态文件，而是源源不断的文本流。', set: { 'p3-out': LOG, 'p3-flow': '8 行文本流', 'p3-env': '🧵 文本流', 'p3-note': 'type server.log —— 文件变成流动的数据' }, cls: { 'p3-s1': 'on' } },
+      { d: 5, cap: '第二步：接上管道 |。它把左边命令的全部输出"接住"，原封不动递给右边的命令。数据全程在内存里流动，不落地、不生成中间文件。', set: { 'p3-note': '| = 接力棒：左边的输出，就是右边的输入' }, cls: { 'p3-s2': 'on' } },
+      { d: 6, cap: '第三步：findstr "ERROR" 扮演门卫——只放行"包含 ERROR"的行，其余全部扣下。8 行进去，3 行出来。', set: { 'p3-out': ERRS, 'p3-flow': '只剩 3 行 ERROR', 'p3-env': '🔻 过滤中', 'p3-note': 'findstr "ERROR" —— 不含 ERROR 的行就地淘汰' }, cls: { 'p3-s3': 'on' } },
+      { d: 5, cap: '第四步：sort 把放行的 3 行按顺序排好（默认按字符先后）。到这一步，数据已经干净整齐。', set: { 'p3-out': SORTEDErr, 'p3-flow': '已排序 3 行', 'p3-env': '🔢 排序中', 'p3-note': 'sort —— 整理队形' }, cls: { 'p3-s4': 'on' } },
+      { d: 6, cap: '最后一跳：> errors.txt。> 把本来要"流上屏幕"的数据改道，灌进文件。注意看右边——屏幕空了。不是失败，是数据走了另一条路。', set: { 'p3-out': '（屏幕上什么都没有——数据没有消失，\n而是被 > 引进了 errors.txt 文件）', 'p3-flow': '📥 已写入 errors.txt', 'p3-env': '📥 写入文件', 'p3-note': '> errors.txt —— 出水口：屏幕改文件' }, cls: { 'p3-s5': 'on warn' } },
+      { d: 7, cap: '重定向家族集体亮相：> 覆盖写；>> 追加写；2> 只把错误流写进文件；2>&1 把错误流并入正常流一起走。一句话：| 是连接命令的流水线，> 是流向文件的出水口。', set: { 'p3-out': '命令 >  文件     ← 覆盖写入\n命令 >> 文件     ← 追加到末尾\n命令 2> 文件     ← 只有错误进文件\n命令 > 文件 2>&1 ← 正常+错误一起进\n命令 < 文件      ← 文件变成输入\n命令 | 命令      ← 输出接给下一命令', 'p3-flow': '重定向全家福', 'p3-note': '2 代表错误流，1 代表正常流（可省略）' }, cls: { 'p3-s5': 'on' } },
+      { d: 6, cap: '验收成果：type errors.txt——3 行 ERROR，按时间排得整整齐齐。从原始日志到成品文件，只花了一行命令、一秒钟。', set: { 'p3-out': 'C:\\练习> type errors.txt\n\n2026-10-26 09:12:03 ERROR 数据库连接超时\n2026-10-26 09:12:15 ERROR 磁盘写入失败 D:\n2026-10-26 09:12:26 ERROR 缓存服务失联', 'p3-note': '一行命令 = 过滤 + 排序 + 落盘' }, cls: { 'p3-file': 'good', 'p3-panelR': 'good', 'p3-s5': 'good' } },
+      { d: 7, cap: '总结：| 是流水线，让命令接力干活；> 是出水口，决定流上屏幕还是灌进文件。记住"左边给右边、屏幕改文件"，你就拿到了命令行的数据加工许可证。往下滚动，亲手接一条管道！', set: { 'p3-note': '▼ 往下滚动，进管道实验室动手' }, cls: { 'p3-s1': 'good', 'p3-s2': 'good', 'p3-s3': 'good', 'p3-s4': 'good' } }
+    ];
+    new LessonPlayer({
+      root: '#lesson3', title: '管道的一生：一滴数据的旅行', scenes: S.map(function (s, i) {
+        return { d: s.d, cap: s.cap, set: s.set, cls: s.cls, a: function (th) { th.querySelector('#p3-env').style.left = LEFTS[i]; } };
+      })
+    });
+  })();
+  </script>
+
+  <!-- ============ 互动1：管道实验室 ============ -->
+  <section class="section">
+    <h2>互动 1 · 管道实验室（自己接一条流水线）</h2>
+    <p class="muted">下面是一份 8 行的日志文件 <code class="inline">server.log</code>（时间乱序、级别混杂）。勾选工序开关，观察数据怎么一步步被加工。</p>
+    <div class="card">
+      <div class="plrow">
+        <div class="plstage on"><span class="lb">第 1 步 · 固定</span>type server.log</div>
+        <span class="plarrow">|</span>
+        <div class="plstage" id="pl-find"><span class="lb">勾选启用</span>findstr "ERROR"</div>
+        <span class="plarrow">|</span>
+        <div class="plstage" id="pl-sort"><span class="lb">勾选启用</span>sort</div>
+        <span class="plarrow">|</span>
+        <div class="plstage" id="pl-redir"><span class="lb">勾选启用</span>&gt; errors.txt</div>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;margin:6px 0 10px">
+        <label class="switchline"><input type="checkbox" id="plb-1"><span>接入 <b>| findstr "ERROR"</b>（过滤）</span></label>
+        <label class="switchline"><input type="checkbox" id="plb-2"><span>接入 <b>| sort</b>（排序）</span></label>
+        <label class="switchline"><input type="checkbox" id="plb-3"><span>末尾接 <b>&gt; errors.txt</b>（落盘）</span></label>
+      </div>
+      <div class="term">
+        <div class="term-bar">
+          <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+          <span class="ttitle" id="pl-cmd">C:\练习&gt; type server.log</span>
+        </div>
+        <div class="term-body" id="pl-out"></div>
+      </div>
+      <div class="explain" id="pl-exp"></div>
+    </div>
+  </section>
+
+  <!-- ============ 互动2：findstr 参数实验室 ============ -->
+  <section class="section">
+    <h2>互动 2 · findstr 参数实验室（命令行界的 Ctrl+F）</h2>
+    <p class="muted"><code class="inline">findstr</code> 在文件或管道输入里找含关键词的行。改关键词、勾参数，看命中的 7 行样例怎么变化。</p>
+    <div class="card">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
+        <label class="switchline"><span>关键词：</span><input type="text" id="fl-kw" value="ERROR" spellcheck="false" autocomplete="off" style="width:140px;padding:5px 9px;border:1px solid var(--line);border-radius:8px;font-family:Consolas,monospace"></label>
+        <label class="switchline"><input type="checkbox" id="fl-i"><span><b>/I</b> 忽略大小写</span></label>
+        <label class="switchline"><input type="checkbox" id="fl-v"><span><b>/V</b> 反选（只显示<b>不含</b>关键词的行）</span></label>
+        <label class="switchline"><input type="checkbox" id="fl-n"><span><b>/N</b> 显示行号</span></label>
+        <label class="switchline"><input type="checkbox" id="fl-b"><span><b>/B</b> 行首才算</span></label>
+        <label class="switchline"><input type="checkbox" id="fl-e"><span><b>/E</b> 行尾才算</span></label>
+        <label class="switchline"><input type="checkbox" id="fl-c"><span><b>/C:</b> 整句匹配</span></label>
+      </div>
+      <pre class="code" id="fl-cmd" style="margin:8px 0">findstr "ERROR" server.log</pre>
+      <div style="background:var(--code-bg);border-radius:10px;padding:12px 18px" id="fl-list"></div>
+      <div class="explain" id="fl-exp"></div>
+    </div>
+  </section>
+
+  <!-- ============ 互动3：重定向符号解剖 ============ -->
+  <section class="section">
+    <h2>互动 3 · 重定向符号解剖（1 号流、2 号流各奔前程）</h2>
+    <p class="muted">每条命令都自带三条"水流"：<b>stdin（0 号，输入）</b>、<b>stdout（1 号，正常输出）</b>、<b>stderr（2 号，错误输出）</b>。重定向符号就是给水流改道的闸门。点一个符号看它改了哪条道。</p>
+    <div class="card">
+      <div class="opts" id="rd-btns"></div>
+      <div id="rd-diagram" style="margin-top:10px"></div>
+      <div class="explain" id="rd-exp"></div>
+    </div>
+  </section>
+
+  <!-- ============ 互动4：实用组合技 ============ -->
+  <section class="section">
+    <h2>实用组合技（背下来，天天用得上）</h2>
+    <div class="grid g3">
+      <div class="card"><h3>📝 一秒建文件</h3>
+        <pre class="code">echo 第1行内容>新建.txt</pre>
+        <p class="muted" style="font-size:13px">echo 本来是打印，接上 &gt; 就把文字直接写成文件。注意数字结尾的坑：<code class="inline">echo abc 2>文件</code> 里那个 2 会被当成"错误流重定向"。</p>
+      </div>
+      <div class="card"><h3>🤫 全静默执行</h3>
+        <pre class="code">某命令 >nul 2>&1</pre>
+        <p class="muted" style="font-size:13px">正常输出丢进 nul 黑洞，错误流 2 并进 1 也一起消失。脚本里只要结果不要输出时就这么写——成败看 <code class="inline">%errorlevel%</code>。</p>
+      </div>
+      <div class="card"><h3>🔗 合并文件</h3>
+        <pre class="code">type a.txt b.txt > 合并.txt</pre>
+        <p class="muted" style="font-size:13px">type 天生支持多个文件串联输出，接个 &gt; 落盘，就是合并。比复制粘贴快十倍。</p>
+      </div>
+      <div class="card"><h3>📋 结果进剪贴板</h3>
+        <pre class="code">dir | clip</pre>
+        <p class="muted" style="font-size:13px">clip 是 Windows 自带的"剪贴板水槽"，任何命令接个 | clip，输出直接进剪贴板，随便粘到哪儿。</p>
+      </div>
+      <div class="card"><h3>🔢 统计行数</h3>
+        <pre class="code">type server.log | find /c /v ""</pre>
+        <p class="muted" style="font-size:13px">find 的 /c 是计数、/v 是反选、"" 是空串匹配一切行——三件套合体就是 wc -l（统计总行数），输出一个数字。</p>
+      </div>
+      <div class="card"><h3>🔎 全盘找文件</h3>
+        <pre class="code">dir /s /b C:\*.log 2>nul</pre>
+        <p class="muted" style="font-size:13px">/s 递归 /b 纯路径，配通配符全盘搜文件；2&gt;nul 把"拒绝访问"的报错丢掉，结果干干净净。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 打卡清单 ============ -->
+  <section class="section">
+    <h2>知识点打卡清单 <span class="chip" data-stage-progress="3"></span></h2>
+    <div class="card check">
+      <label><input type="checkbox" id="s3-1" data-persist><span>能解释 <code class="inline">|</code>：把左边命令的输出，作为右边命令的输入，命令接力干活</span></label>
+      <label><input type="checkbox" id="s3-2" data-persist><span>分得清 <code class="inline">></code>（覆盖写）和 <code class="inline">>></code>（追加写），知道 > 会无声清空已有文件</span></label>
+      <label><input type="checkbox" id="s3-3" data-persist><span>理解 <code class="inline">2></code>（错误流单独写）和 <code class="inline">2>&1</code>（错误并入正常流），会写 <code class="inline">命令 > 日志 2>&1</code></span></label>
+      <label><input type="checkbox" id="s3-4" data-persist><span>会用 findstr 常用参数：<code class="inline">/I</code> 忽略大小写、<code class="inline">/V</code> 反选、<code class="inline">/N</code> 行号、<code class="inline">/B /E</code> 行首行尾、<code class="inline">/C:"含空格整句"</code></span></label>
+      <label><input type="checkbox" id="s3-5" data-persist><span>会用 <code class="inline">sort</code> 排序、<code class="inline">more</code> 分页看长文、<code class="inline">| clip</code> 把输出送进剪贴板</span></label>
+      <label><input type="checkbox" id="s3-6" data-persist><span>明白 <code class="inline">>nul 2>&1</code> 的静默套路和 nul "黑洞设备"是什么</span></label>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="grid g2">
+      <div class="card">
+        <h3>🎯 本阶段动手任务（回到你的真电脑）</h3>
+        <p>1. 随便找个日志/文本文件，跑一遍 <code class="inline">type 文件 | findstr "关键词" | sort > 结果.txt</code>，全程替换关键词三次；<br>
+           2. 分别执行 <code class="inline">dir > a.txt</code> 和 <code class="inline">dir >> a.txt</code> 两次，type a.txt 观察"覆盖"与"追加"的区别；<br>
+           3. 执行 <code class="inline">dir C:\拒绝访问的目录 2> err.txt</code>，看看错误流怎么单独抓；<br>
+           4. 试 <code class="inline">dir | clip</code>，然后去记事本 Ctrl+V——感受命令行直通剪贴板。</p>
+      </div>
+      <div class="card">
+        <h3>📚 资源</h3>
+        <p>• <a href="https://learn.microsoft.com/zh-cn/windows-server/administration/windows-commands/findstr" target="_blank" rel="noopener">微软官方 · findstr 文档</a><br>
+           • <a href="https://learn.microsoft.com/zh-cn/windows-server/administration/windows-commands/sort" target="_blank" rel="noopener">微软官方 · sort 文档</a><br>
+           • <a href="https://ss64.com/nt/syntax-redirection.html" target="_blank" rel="noopener">SS64 · CMD 重定向语法详解（英文，讲得最透）</a><br>
+           • <a href="https://cloud.tencent.com/developer/article/1496450" target="_blank" rel="noopener">腾讯云 · CMD 命令大全速查</a></p>
+        <div class="callout ok"><b>通关标准：</b>给你一个几百 KB 的日志文件，你能不打开它，只用一行管道命令回答："里面有 ERROR 多少行？都是什么时间发生的？"并把答案存成文件。</div>
+      </div>
+    </div>
+  </section>
+
+  <p style="margin-top:30px">
+    <a class="btn" href="stage2.html">← 上一阶段：文件与目录</a>
+    <a class="btn" href="index.html">课程总览</a>
+    <a class="btn primary" href="stage4.html">下一阶段：网络诊断 →</a>
+  </p>
+</main>
+
+<footer class="foot">阶段 ③ · 文本与管道 · 命令行学院</footer>
+<script src="assets/app.js"></script>
+<script>
+/* ============ 公共：HTML 转义 ============ */
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+/* ============ 公共：样例日志 ============ */
+var LOG8 = [
+  '2026-10-26 09:12:01 INFO  用户登录 ok=1',
+  '2026-10-26 09:12:03 ERROR 数据库连接超时',
+  '2026-10-26 09:12:07 INFO  页面加载 200',
+  '2026-10-26 09:12:09 WARN  响应偏慢 1.8s',
+  '2026-10-26 09:12:15 ERROR 磁盘写入失败 D:',
+  '2026-10-26 09:12:21 INFO  用户登出',
+  '2026-10-26 09:12:26 ERROR 缓存服务失联',
+  '2026-10-26 09:12:30 INFO  定时任务触发'
+];
+
+/* ============ 互动1：管道实验室 ============ */
+(function () {
+  var cFind = document.getElementById('pl-find');
+  var cSort = document.getElementById('pl-sort');
+  var cRedir = document.getElementById('pl-redir');
+  var cmdEl = document.getElementById('pl-cmd');
+  var outEl = document.getElementById('pl-out');
+  var expEl = document.getElementById('pl-exp');
+  var ch1 = document.getElementById('plb-1');
+  var ch2 = document.getElementById('plb-2');
+  var ch3 = document.getElementById('plb-3');
+
+  function render() {
+    var cmd = 'type server.log';
+    if (ch1.checked) cmd += ' | findstr "ERROR"';
+    if (ch2.checked) cmd += ' | sort';
+    if (ch3.checked) cmd += ' > errors.txt';
+    cmdEl.textContent = 'C:\\练习> ' + cmd;
+    cFind.classList.toggle('on', ch1.checked);
+    cSort.classList.toggle('on', ch2.checked);
+    cRedir.classList.toggle('on', ch3.checked);
+    cFind.querySelector('.lb').textContent = ch1.checked ? '✓ 已接入' : '勾选启用';
+    cSort.querySelector('.lb').textContent = ch2.checked ? '✓ 已接入' : '勾选启用';
+    cRedir.querySelector('.lb').textContent = ch3.checked ? '✓ 已接入' : '勾选启用';
+
+    var lines = LOG8.slice();
+    if (ch1.checked) lines = lines.filter(function (l) { return l.indexOf('ERROR') >= 0; });
+    if (ch2.checked) lines = lines.slice().sort();
+
+    var html = '';
+    if (ch3.checked) {
+      html += '<span class="pr">C:\\练习&gt; </span>' + esc(cmd) + '\n';
+      html += '<span class="cm">（屏幕无输出——数据已重定向进 errors.txt，不会在屏幕显示）</span>\n\n';
+      html += '<span class="hl">—— errors.txt 的内容 ——</span>\n';
+      html += esc(lines.join('\n'));
+    } else {
+      html += '<span class="pr">C:\\练习&gt; </span>' + esc(cmd) + '\n';
+      html += esc(lines.join('\n'));
+    }
+    outEl.innerHTML = html;
+
+    var tips = [];
+    if (!ch1.checked && !ch2.checked && !ch3.checked) tips.push('这是 type 的裸输出：8 行原样上屏。接下来勾上 findstr。');
+    if (ch1.checked) tips.push('<b>findstr "ERROR"</b> 过滤后只剩 3 行——其他行不是消失了，是被门卫拦在管道外面。');
+    if (ch2.checked && !ch1.checked) tips.push('<b>sort</b> 单独用：8 行按字符顺序重排（INFO 行排在了 ERROR 前面，因为 I&lt;E？不——是按整行首个字符比较，时间相同则看后面）。');
+    if (ch2.checked && ch1.checked) tips.push('<b>sort</b> 把过滤后的 3 行按时间排整齐。');
+    if (ch3.checked) tips.push('<b>&gt; errors.txt</b> 把最终结果灌进文件：<b>屏幕上不再显示</b>。想看成果要 type errors.txt——本页已经替你显示在下方。');
+    tips.push('观察命令拼装：每个工序用 <code class="inline">|</code> 串起来，重定向 <code class="inline">></code> 只能放在<b>最末尾</b>。');
+    expEl.innerHTML = tips.join('<br>');
+  }
+  [ch1, ch2, ch3].forEach(function (c) { c.addEventListener('change', render); });
+  render();
+})();
+
+/* ============ 互动2：findstr 参数实验室 ============ */
+(function () {
+  var LINES = [
+    'ERROR: 磁盘已满',
+    '警告 ERROR 发生在模块B',
+    'error 小写也能匹配吗',
+    'ERRORSORRY 这是更长的词',
+    '报告完毕 ERROR',
+    '一切正常 INFO 行',
+    '数据库 error 超时 ERROR'
+  ];
+  var kw = document.getElementById('fl-kw');
+  var cI = document.getElementById('fl-i'), cV = document.getElementById('fl-v'), cN = document.getElementById('fl-n');
+  var cB = document.getElementById('fl-b'), cE = document.getElementById('fl-e'), cC = document.getElementById('fl-c');
+  var cmdEl = document.getElementById('fl-cmd');
+  var listEl = document.getElementById('fl-list');
+  var expEl = document.getElementById('fl-exp');
+
+  function hit(line, k, o) {
+    var hay = o.i ? line.toLowerCase() : line;
+    var nee = o.i ? k.toLowerCase() : k;
+    if (!nee) return false;
+    var idx = hay.indexOf(nee);
+    if (idx < 0) return false;
+    if (o.b && idx !== 0) return false;
+    if (o.e && idx + nee.length !== line.length) return false;
+    return true;
+  }
+  function render() {
+    var o = { i: cI.checked, b: cB.checked, e: cE.checked };
+    var k = kw.value;
+    var argv = 'findstr';
+    if (cI.checked) argv += ' /I';
+    if (cV.checked) argv += ' /V';
+    if (cN.checked) argv += ' /N';
+    if (cB.checked) argv += ' /B';
+    if (cE.checked) argv += ' /E';
+    if (cC.checked) argv += ' /C:"' + k + '"';
+    else argv += ' "' + k + '"';
+    argv += ' server.log';
+    cmdEl.textContent = argv;
+
+    var shown = 0;
+    var html = LINES.map(function (line, i) {
+      var m = hit(line, k, o);
+      if (cV.checked) m = !m;
+      if (m) shown++;
+      var num = cN.checked ? '<span class="pr">' + (i + 1) + ':</span> ' : '';
+      return '<div class="ln' + (m ? ' on' : '') + '" style="' + (m ? 'color:#e2e8f0' : 'opacity:.35') + '">' + num + esc(line) + (m ? '  <span class="ok">← 命中</span>' : '') + '</div>';
+    }).join('');
+    listEl.innerHTML = '<div style="font-family:Consolas,monospace;font-size:12.5px;color:#94a3b8;margin-bottom:6px">共 7 行样例，当前命中 ' + shown + ' 行：</div>' + html;
+
+    var tips = [];
+    if (!cI.checked && !cV.checked && !cN.checked && !cB.checked && !cE.checked && !cC.checked) tips.push('默认：找<b>包含关键词（区分大小写）</b>的行，行里任何位置都算。');
+    if (cI.checked) tips.push('<b>/I</b> 忽略大小写：error / Error / ERROR 一视同仁。');
+    if (cV.checked) tips.push('<b>/V</b> 反转结果：不含关键词的行反而显示——常用来"剔除噪音行"。');
+    if (cN.checked) tips.push('<b>/N</b> 行首加行号，定位原始位置全靠它。');
+    if (cB.checked) tips.push('<b>/B</b> 只认"出现在行首"的匹配（注意：ERRORSORRY 也命中——findstr 是子串匹配，不是整词匹配）。');
+    if (cE.checked) tips.push('<b>/E</b> 只认"出现在行尾"的匹配。');
+    if (cB.checked && cE.checked) tips.push('/B + /E 同时勾：相当于"整行就是关键词"，当前关键词下命中 0 行。');
+    if (cC.checked) tips.push('<b>/C:"整句"</b> 把引号里的内容当<b>一个整体</b>——关键词带空格时必须用它，否则空格会被拆成多个关键词（findstr 里空格默认 = 或者关系）。');
+    if (!k) tips.push('关键词为空，findstr 会报错：/C: 后不能是空串。');
+    expEl.innerHTML = tips.join('<br>') || '观察命中行。';
+  }
+  [cI, cV, cN, cB, cE, cC].forEach(function (c) { c.addEventListener('change', render); });
+  kw.addEventListener('input', render);
+  render();
+})();
+
+/* ============ 互动3：重定向符号解剖 ============ */
+(function () {
+  var SYMS = [
+    { t: '>', desc: '把 <b>stdout（正常输出）</b>从屏幕改道写进文件。<b>文件已存在 → 整个覆盖</b>，原内容无声消失，这是最大的坑。', ex: 'dir > 文件清单.txt', on: { 1: [0] } },
+    { t: '>>', desc: '同样是 stdout 进文件，但是<b>追加</b>到末尾，原有内容原封不动。记日志、累积结果用它。', ex: 'echo 2026-10-26 检查完毕 >> 巡检日志.txt', on: { 1: [1] } },
+    { t: '2>', desc: '只把 <b>stderr（错误输出）</b>写进文件，正常输出照旧上屏——两股水流分开管。', ex: 'robocopy C:\\a D:\\b /E 2> 错误.log', on: { 2: [0] } },
+    { t: '2>&1', desc: '把 2 号流<b>并入</b> 1 号流。跟在 &gt; 后面写，正常输出和错误就一起进同一个文件。读法："2 并到 1"。', ex: 'build.exe > 全部输出.log 2>&1', on: { 2: [1] } },
+    { t: '<', desc: '反方向改道：把<b>文件内容变成 stdin</b> 喂给命令——命令不用键盘，改"吃"文件。', ex: 'sort < 名单.txt', on: { 0: [0] } },
+    { t: '|', desc: '把 stdout 直接接到<b>下一个命令的 stdin</b>——命令接力。本阶段的主角，数据全程在内存里流动。', ex: 'type server.log | findstr "ERROR"', on: { 0: [1], 1: [2] } },
+    { t: '>nul', desc: 'stdout 丢进 nul 这个"黑洞设备"——数据直接蒸发。全静默的标配写法：<code class="inline">命令 >nul 2>&1</code>。', ex: 'ping baidu.com >nul 2>&1', on: { 1: [3] } }
+  ];
+  var ROWS = [
+    { name: 'stdin · 标准输入（0 号流）', src: '⌨ 键盘（默认）', alts: ['📄 文件（&lt;）', '⛓ 上一命令的输出（|）'] },
+    { name: 'stdout · 标准输出（1 号流）', src: '🖥 屏幕（默认）', alts: ['📄 文件·覆盖（&gt;）', '📄 文件·追加（&gt;&gt;）', '⛓ 下一命令（|）', '🗑 nul 丢弃（&gt;nul）'] },
+    { name: 'stderr · 错误输出（2 号流）', src: '🖥 屏幕（默认）', alts: ['📄 文件（2&gt;）', '⛓ 并入 stdout（2&gt;&amp;1）'] }
+  ];
+  var btns = document.getElementById('rd-btns');
+  var dia = document.getElementById('rd-diagram');
+  var exp = document.getElementById('rd-exp');
+  btns.innerHTML = SYMS.map(function (s, i) {
+    return '<button class="opt" type="button" data-s="' + i + '"><code class="inline">' + esc(s.t) + '</code></button>';
+  }).join('');
+  function pick(i) {
+    var s = SYMS[i];
+    btns.querySelectorAll('.opt').forEach(function (x, xi) { x.classList.toggle('correct', xi === i); });
+    var html = ROWS.map(function (r, ri) {
+      var cells = ['<div class="plstage on"><span class="lb">' + r.name + '</span>' + r.src + '</div>'];
+      r.alts.forEach(function (a, ai) {
+        var act = s.on[ri] && s.on[ri].indexOf(ai) >= 0;
+        cells.push('<span class="plarrow">' + (ri === 0 ? '⬅' : '➡') + '</span>');
+        cells.push('<div class="plstage' + (act ? ' on' : '') + '"' + (act ? '' : ' style="opacity:.5"') + '>' + a + '</div>');
+      });
+      return '<div class="plrow">' + cells.join('') + '</div>';
+    }).join('');
+    dia.innerHTML = html;
+    exp.innerHTML = '<b>符号 <code class="inline">' + esc(s.t) + '</code>：</b>' + s.desc + '<br><b>示例：</b><code class="inline">' + esc(s.ex) + '</code>';
+  }
+  btns.addEventListener('click', function (e) {
+    var b = e.target.closest('.opt');
+    if (b) pick(+b.dataset.s);
+  });
+  pick(0);
+})();
+</script>
+</body>
+</html>

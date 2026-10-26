@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段② 文件与目录 —— 摸得着文件 · 命令行学院</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="bar">
+    <span class="brand"><span class="logo">&gt;_</span>命令行学院</span>
+    <nav class="nav">
+      <a href="index.html">课程总览</a>
+      <a href="stage1.html">① 终端入门</a>
+      <a href="stage2.html">② 文件与目录</a>
+      <a href="stage3.html">③ 文本与管道</a>
+      <a href="stage4.html">④ 网络诊断</a>
+      <a href="stage5.html">⑤ 系统管理</a>
+      <a href="stage6.html">⑥ PowerShell 与脚本</a>
+      <a href="cheatsheet.html">⌨ 速查表</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" style="padding:30px 32px">
+    <span class="tag">阶段 ② · 预计 1~2 天</span>
+    <h1 style="font-size:24px">文件与目录 —— 摸得着文件</h1>
+    <p class="lead">阶段目标：不碰鼠标，纯命令完成建目录、复制、移动、改名、隐藏、删除——并且清楚知道哪些操作"没有后悔药"。</p>
+    <div class="pwrap">
+      <div class="progress"><div class="fill" data-progress-bar="2"></div></div>
+      <span class="plabel" data-progress-label="2"></span>
+    </div>
+  </section>
+
+  <!-- ============ 互动1：可视化文件操作台 ============ -->
+  <section class="section">
+    <h2>互动 1 · 可视化文件操作台 <span class="chip" data-stage-progress="2"></span></h2>
+    <p class="muted">左边是一块虚拟硬盘 <code class="inline">C:\练习</code>（这是"上帝视角"，隐藏文件也画出来了，真终端里可看不到）；右边每个按钮就是一条<b>真实命令</b>。按 ①→⑨ 顺序点，体验一次完整的文件整理流程；乱点也没事——前置校验会给你看<b>真实世界一模一样的报错</b>。</p>
+    <div class="flow">
+      <div class="fnode"><b>md</b>建目录</div><span class="farrow">→</span>
+      <div class="fnode"><b>copy</b>复制</div><span class="farrow">→</span>
+      <div class="fnode"><b>move</b>移动</div><span class="farrow">→</span>
+      <div class="fnode"><b>ren</b>改名</div><span class="farrow">→</span>
+      <div class="fnode"><b>attrib</b>藏文件</div><span class="farrow">→</span>
+      <div class="fnode"><b>del / rd</b>删除</div>
+    </div>
+    <div class="lab-grid">
+      <div class="card">
+        <h3>🗂 虚拟目录树（实时变化）</h3>
+        <div class="tree" id="fot-tree"></div>
+        <p class="muted" style="font-size:12.5px;margin-top:8px">颜色说明：<span style="color:#0f766e;font-weight:700">青色=文件夹</span>，白色=文件，<span style="color:#64748b">灰色=隐藏文件</span>，<span style="color:#ca8a04;font-weight:700">黄色=刚被命令改过</span>。</p>
+      </div>
+      <div class="card">
+        <h3>⌨ 命令按钮（点我执行）</h3>
+        <div class="opts" id="fot-btns"></div>
+        <button class="btn" type="button" id="fot-reset" style="margin-top:6px">⟲ 重置虚拟硬盘</button>
+      </div>
+    </div>
+    <div class="term" style="margin-top:14px">
+      <div class="term-bar">
+        <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+        <span class="ttitle">命令行学院 · 文件操作台 —— C:\练习（不影响你的真实电脑）</span>
+      </div>
+      <div class="term-body" id="fot-log"></div>
+    </div>
+    <div class="explain" id="fot-exp">👆 点一个命令按钮，这里会解释它做了什么、为什么这么输出。</div>
+  </section>
+
+  <!-- ============ 互动2：dir 参数调参器 ============ -->
+  <section class="section">
+    <h2>互动 2 · dir 参数调参器</h2>
+    <p class="muted"><code class="inline">dir</code> 是命令行里使用频率最高的命令。勾选下面的开关，观察同一条命令在<b>同一块虚拟硬盘</b>上（会同步互动 1 的改动）输出有什么不同。</p>
+    <div class="card">
+      <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+        <label class="switchline"><input type="checkbox" id="dl-a"><span><b>/a</b> 含隐藏文件</span><span class="hint">desktop.ini 会现身</span></label>
+        <label class="switchline"><input type="checkbox" id="dl-b"><span><b>/b</b> 简洁模式</span><span class="hint">只输出文件名</span></label>
+        <label class="switchline"><input type="checkbox" id="dl-s"><span><b>/s</b> 含子目录</span><span class="hint">递归列出所有层</span></label>
+        <label class="switchline"><span><b>/o:</b> 排序方式</span>
+          <select id="dl-o" style="padding:4px 8px;border:1px solid var(--line);border-radius:8px">
+            <option value="">（不指定：按名称）</option>
+            <option value="n">n = 按名称</option>
+            <option value="s">s = 按大小（小→大）</option>
+            <option value="d">d = 按时间（旧→新）</option>
+          </select>
+        </label>
+      </div>
+      <div class="term" style="margin-top:12px">
+        <div class="term-bar">
+          <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+          <span class="ttitle" id="dl-cmd">C:\练习&gt; dir</span>
+        </div>
+        <div class="term-body" id="dl-out"></div>
+      </div>
+      <div class="explain" id="dl-exp"></div>
+    </div>
+  </section>
+
+  <!-- ============ 互动3：robocopy 场景生成器 ============ -->
+  <section class="section">
+    <h2>互动 3 · robocopy 场景生成器（一条顶十条的备份神器）</h2>
+    <p class="muted"><code class="inline">robocopy</code>（Robust File Copy，健壮复制）是 Windows 自带的"复制界天花板"：断点续传、多线程、镜像同步、失败重试全都行。选一个你最可能遇到的场景，看命令应该怎么写、每个参数什么意思。</p>
+    <div class="card">
+      <div class="opts" id="rc-btns"></div>
+      <div id="rc-detail" style="margin-top:8px"></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>📋 robocopy 常用参数速查</h3>
+      <table class="tbl">
+        <thead><tr><th>参数</th><th>作用</th><th>备注</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">/E</code></td><td>复制所有子目录（含空目录）</td><td>最常用，没有之一</td></tr>
+          <tr><td><code class="inline">/MIR</code></td><td>镜像：让目标和源<b>完全一致</b></td><td>会删除目标端多余文件，方向写反=灾难</td></tr>
+          <tr><td><code class="inline">/Z</code></td><td>可重启模式（断点续传）</td><td>大文件、网络复制必带</td></tr>
+          <tr><td><code class="inline">/MT:n</code></td><td>n 线程并行复制</td><td>默认 8，最大 128；海量小文件提速明显</td></tr>
+          <tr><td><code class="inline">/R:n /W:n</code></td><td>失败重试 n 次、间隔 n 秒</td><td>默认 /R:1000000！网络备份必改成小值</td></tr>
+          <tr><td><code class="inline">/XO</code></td><td>只复制比目标新的文件</td><td>增量同步</td></tr>
+          <tr><td><code class="inline">/XF 文件</code></td><td>排除匹配的文件（支持通配符）</td><td><code class="inline">/XF *.tmp</code></td></tr>
+          <tr><td><code class="inline">/XD 目录</code></td><td>排除整个目录</td><td><code class="inline">/XD node_modules</code></td></tr>
+          <tr><td><code class="inline">/LOG:文件</code></td><td>把输出写进日志文件</td><td><code class="inline">/LOG:copy.log</code>，常配 /NP</td></tr>
+          <tr><td><code class="inline">/NP</code></td><td>不显示每个文件的进度百分比</td><td>日志更干净</td></tr>
+          <tr><td><code class="inline">/MOV /MOVE</code></td><td>复制后删除源文件 / 连目录一起移动</td><td>搬家用，同样没有回收站</td></tr>
+        </tbody>
+      </table>
+      <div class="callout info"><b>冷知识：</b>robocopy 的退出码 0~7 都算"成功"（0=没文件要复制，1=成功复制了文件，2=检测到多余文件……），<b>≥8 才是真的出错</b>。所以脚本里判断成败要写 <code class="inline">if %errorlevel% LEQ 7</code>，阶段⑥会用到。</div>
+    </div>
+  </section>
+
+  <!-- ============ 互动4：通配符实验室 ============ -->
+  <section class="section">
+    <h2>互动 4 · 通配符实验室：<code class="inline">*</code> 与 <code class="inline">?</code></h2>
+    <p class="muted">几乎所有命令都支持通配符：<b><code class="inline">*</code> 代表任意长度的任意字符</b>，<b><code class="inline">?</code> 代表恰好 1 个字符</b>。点预设或自己输入模式，看哪些文件会被命中。</p>
+    <div class="card">
+      <div class="opts" id="wc-presets"></div>
+      <div class="range-row">
+        <label>自定义模式：</label>
+        <input type="text" id="wc-input" value="*.jpg" spellcheck="false" autocomplete="off" style="flex:1;padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-family:Consolas,monospace">
+      </div>
+      <div style="background:var(--code-bg);border-radius:10px;padding:12px 18px;margin-top:8px" id="wc-list"></div>
+      <div class="explain" id="wc-exp"></div>
+    </div>
+  </section>
+
+  <!-- ============ 对照表 + 安全警示 ============ -->
+  <section class="section">
+    <h2>三代复制命令怎么选？</h2>
+    <div class="card">
+      <table class="tbl">
+        <thead><tr><th>能力</th><th>copy</th><th>xcopy</th><th>robocopy</th></tr></thead>
+        <tbody>
+          <tr><td>复制子目录</td><td>✗ 不支持</td><td><code class="inline">/S</code>（不含空目录）/ <code class="inline">/E</code></td><td><code class="inline">/E</code>（含空目录）</td></tr>
+          <tr><td>保留时间戳等属性</td><td>✗</td><td>基本保留</td><td>完整保留（<code class="inline">/COPY:DAT</code> 可细调）</td></tr>
+          <tr><td>断点续传</td><td>✗</td><td>✗</td><td><code class="inline">/Z</code></td></tr>
+          <tr><td>多线程加速</td><td>✗</td><td>✗</td><td><code class="inline">/MT:16</code></td></tr>
+          <tr><td>镜像同步（可删除多余）</td><td>✗</td><td>✗</td><td><code class="inline">/MIR</code></td></tr>
+          <tr><td>排除文件/目录</td><td>✗</td><td><code class="inline">/EXCLUDE:</code> 列表文件</td><td><code class="inline">/XF /XD</code> 直接写</td></tr>
+          <tr><td>失败自动重试</td><td>✗</td><td>✗</td><td><code class="inline">/R:n /W:n</code></td></tr>
+          <tr><td>适合场景</td><td>拷一两个文件</td><td>维护老脚本</td><td>备份、同步、大批量——微软官方推荐</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn"><b>☠ 安全警示（命令行没有后悔药）：</b><br>
+      ① <b>命令行删除不进回收站</b>——<code class="inline">del</code> 和 <code class="inline">rd /s /q</code> 删掉就没了，资源管理器那套"右键还原"救不回来；<br>
+      ② <code class="inline">del /q</code> 是"免确认删除"，配合通配符 <code class="inline">del /q *.jpg</code> 一秒清空一批，手抖就是事故；<br>
+      ③ <code class="inline">rd /s /q 目录</code> 连目录带里面所有东西瞬间蒸发，<b>删错盘符（如 rd /s /q D:\ ）神仙难救</b>；<br>
+      ④ 保命口诀：<b>删前先 dir 确认</b>——先 <code class="inline">dir 备份\*.docx</code> 看清楚要删的是哪些，再换 del。</div>
+    </div>
+  </section>
+
+  <!-- ============ 打卡清单 ============ -->
+  <section class="section">
+    <h2>知识点打卡清单 <span class="chip" data-stage-progress="2"></span></h2>
+    <div class="card check">
+      <label><input type="checkbox" id="s2-1" data-persist><span>会用 <code class="inline">dir</code> 的常用参数：<code class="inline">/a</code> 显示隐藏、<code class="inline">/b</code> 简洁、<code class="inline">/s</code> 递归、<code class="inline">/o:n|s|d</code> 排序</span></label>
+      <label><input type="checkbox" id="s2-2" data-persist><span>会建/删目录：<code class="inline">md</code> 建目录；<code class="inline">rd</code> 只能删空目录，<code class="inline">rd /s /q</code> 才能删非空（且不进回收站）</span></label>
+      <label><input type="checkbox" id="s2-3" data-persist><span>能说清 copy / xcopy / robocopy 的区别和选用场景（备份同步一律 robocopy）</span></label>
+      <label><input type="checkbox" id="s2-4" data-persist><span>会用 <code class="inline">move</code> 移动、<code class="inline">ren</code> 改名、<code class="inline">del</code> 删除，并配合通配符 <code class="inline">*</code> <code class="inline">?</code> 批量操作</span></label>
+      <label><input type="checkbox" id="s2-5" data-persist><span>理解 <code class="inline">robocopy /MIR</code> 镜像备份的威力与风险（目标端多余文件会被删），会加 <code class="inline">/R:2 /W:3</code></span></label>
+      <label><input type="checkbox" id="s2-6" data-persist><span>会用 <code class="inline">attrib +h / -h</code> 藏/找文件，知道 dir 默认看不见隐藏文件、<code class="inline">dir /a</code> 能看见</span></label>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="grid g2">
+      <div class="card">
+        <h3>🎯 本阶段动手任务（回到你的真电脑）</h3>
+        <p>1. 在 D 盘建 <code class="inline">D:\练习</code>，把互动 1 的 ①→⑨ 全部在真终端做一遍（用自己建的练习目录，别碰系统目录）；<br>
+           2. 用 <code class="inline">robocopy "C:\Users\你\Pictures" "D:\照片备份" /E /XO</code> 给照片做一次增量备份，再跑一遍观察"跳过"了哪些文件；<br>
+           3. 在下载目录试 <code class="inline">dir *.jpg /o:s</code> 和 <code class="inline">dir /b /s *.tmp</code>，感受通配符 + 排序；<br>
+           4. 建个 <code class="inline">秘密.txt</code>，<code class="inline">attrib +h</code> 藏起来，再用 <code class="inline">dir /a</code> 找回——体会隐藏属性不是加密。</p>
+      </div>
+      <div class="card">
+        <h3>📚 资源</h3>
+        <p>• <a href="https://learn.microsoft.com/zh-cn/windows-server/administration/windows-commands/robocopy" target="_blank" rel="noopener">微软官方 · robocopy 完整文档</a><br>
+           • <a href="https://learn.microsoft.com/zh-cn/windows-server/administration/windows-commands/windows-commands" target="_blank" rel="noopener">微软官方 · Windows 命令 A-Z 大全（当字典查）</a><br>
+           • <a href="https://search.bilibili.com/all?keyword=robocopy%20%E5%A4%87%E4%BB%BD" target="_blank" rel="noopener">B站 · 搜「robocopy 备份」实战视频</a><br>
+           • <a href="https://cloud.tencent.com/developer/article/1496450" target="_blank" rel="noopener">腾讯云 · CMD 命令大全速查</a></p>
+        <div class="callout ok"><b>通关标准：</b>给你一个装满照片的文件夹，你能不开资源管理器，只用 robocopy 在 U 盘做出镜像备份；并能向别人解释：为什么 del 和 rd /s /q 被称为"命令行两大危险操作"。</div>
+      </div>
+    </div>
+  </section>
+
+  <p style="margin-top:30px">
+    <a class="btn" href="stage1.html">← 上一阶段：终端入门</a>
+    <a class="btn" href="index.html">课程总览</a>
+    <a class="btn primary" href="stage3.html">下一阶段：文本与管道 →</a>
+  </p>
+</main>
+
+<footer class="foot">阶段 ② · 文件与目录 · 命令行学院</footer>
+<script src="assets/app.js"></script>
+<script>
+/* ============ 共享虚拟硬盘 C:\练习（互动1、互动2 共用） ============ */
+var FS, MARKS;
+var FS_TPL = {
+  '照片': { dir: 1, ts: 30, kids: {
+    '旅游.jpg': { bytes: 3276800, ts: 45 },
+    '聚会.jpg': { bytes: 2150400, ts: 50 }
+  }},
+  '文档': { dir: 1, ts: 20, kids: {
+    '报告.docx':      { bytes: 901120, ts: 10 },
+    '旧版-报告.docx': { bytes: 778240, ts: 5 },
+    '密码本.txt':     { bytes: 1024,   ts: 15 }
+  }},
+  'todo.txt':    { bytes: 2048, ts: 25 },
+  'desktop.ini': { bytes: 282,  ts: 2, hidden: 1 }
+};
+function fsClone(o) {
+  var r = {};
+  for (var k in o) {
+    var v = o[k];
+    r[k] = v.dir ? { dir: 1, ts: v.ts, kids: fsClone(v.kids) } : { bytes: v.bytes, ts: v.ts };
+    if (v.hidden) r[k].hidden = 1;
+  }
+  return r;
+}
+function fsParts(p) { return p.split('\\').filter(function (s) { return s; }); }
+function fsAt(parts) {
+  var n = FS;
+  for (var i = 0; i < parts.length; i++) {
+    if (!n || !n.dir) return null;
+    n = n.kids[parts[i]];
+  }
+  return n || null;
+}
+function fsMark(path) { MARKS[path] = 1; }
+function fsCount(node) {
+  var c = { files: 0, dirs: 0, bytes: 0 };
+  (function walk(n) {
+    for (var k in n.kids) {
+      var v = n.kids[k];
+      if (v.dir) { c.dirs++; walk(v); } else { c.files++; c.bytes += v.bytes; }
+    }
+  })(node);
+  return c;
+}
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function fmtKB(b) { return b >= 1024 ? Math.round(b / 1024) + ' KB' : b + ' B'; }
+
+/* ============ 互动1：可视化文件操作台 ============ */
+(function () {
+  var treeEl = document.getElementById('fot-tree');
+  var btnsEl = document.getElementById('fot-btns');
+  var logEl  = document.getElementById('fot-log');
+  var expEl  = document.getElementById('fot-exp');
+  var PROMPT = 'C:\\练习&gt; ';
+
+  function log(html) {
+    var d = document.createElement('div');
+    d.innerHTML = html;
+    logEl.appendChild(d);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function logLine(t, cls) { log('<span' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(t) + '</span>'); }
+  function logCmd(cmd) { log('<span class="pr">' + PROMPT + '</span>' + esc(cmd)); }
+
+  function renderTree() {
+    var html = ['<span class="d">C:\\练习</span>'];
+    (function walk(node, prefix, basePath) {
+      var names = Object.keys(node.kids).sort(function (a, b) {
+        var da = node.kids[a].dir, db = node.kids[b].dir;
+        if (da !== db) return da ? -1 : 1;
+        return a < b ? -1 : a > b ? 1 : 0;
+      });
+      names.forEach(function (k, i) {
+        var v = node.kids[k];
+        var last = i === names.length - 1;
+        var p = basePath ? basePath + '\\' + k : k;
+        var cls = v.dir ? 'd' : (v.hidden ? 'hidden' : 'f');
+        if (MARKS[p]) cls += ' mark';
+        var tag = v.dir ? '' : '  (' + fmtKB(v.bytes) + (v.hidden ? ' · 隐藏' : '') + ')';
+        html.push('<span class="cm">' + esc(prefix + (last ? '└─ ' : '├─ ')) + '</span><span class="' + cls + '">' + esc(k) + '</span><span class="cm">' + esc(tag) + '</span>');
+        if (v.dir) walk(v, prefix + (last ? '   ' : '│  '), p);
+      });
+    })( { kids: FS }, '', '');
+    treeEl.innerHTML = html.join('\n');
+  }
+
+  function dirRowsOf(dirNode) {
+    var names = Object.keys(dirNode.kids).filter(function (k) { return !dirNode.kids[k].hidden; });
+    names.sort(function (a, b) { var da = dirNode.kids[a].dir; return (dirNode.kids[b].dir ? 1 : 0) - da || (a < b ? -1 : 1); });
+    var nf = 0, nd = 0;
+    names.forEach(function (k) { dirNode.kids[k].dir ? nd++ : nf++; });
+    var lines = names.map(function (k) {
+      var v = dirNode.kids[k];
+      return '2026/10/26  09:' + String(v.ts).padStart(2, '0') + '    ' + (v.dir ? '<DIR>          ' : String(v.bytes.toLocaleString('en-US')).padStart(13) + ' ') + k;
+    });
+    lines.push('');
+    lines.push('               ' + nf + ' 个文件' + (nd ? '，' + nd + ' 个目录' : ''));
+    return lines;
+  }
+
+  /* 每条命令：run 返回 { ok, out:[{t,cls}], exp, expCls } */
+  var CMDS = [
+    { label: '① md 备份', cmd: 'md 备份', run: function () {
+      if (FS['备份']) return { ok: 0, out: [['子目录或文件 备份 已经存在。', 'err']],
+        exp: '真实报错。md 不能"覆盖"已有目录。想重建？先 rd 删掉，或者换个别名：md 备份2。' };
+      FS['备份'] = { dir: 1, ts: 56, kids: {} };
+      fsMark('备份');
+      return { ok: 1, out: [['（没有任何输出？对，md 成功时是静默的——命令行里"没有消息"往往就是"好消息"。）', 'cm']],
+        exp: '<b>md</b>（make directory）建一个空目录。看左边目录树，"备份"出现了。它是内部命令，长在 cmd.exe 里。' };
+    }},
+    { label: '② copy 文档\\报告.docx 备份\\', cmd: 'copy 文档\\报告.docx 备份\\', run: function () {
+      if (!fsAt(['文档', '报告.docx'])) return { ok: 0, out: [['系统找不到指定的文件。', 'err'], ['        0 个文件已复制', 'cm']], exp: '源文件不存在（也许被你重命名/删了？点重置再来）。' };
+      if (!fsAt(['备份']) || !fsAt(['备份']).dir) return { ok: 0, out: [['系统找不到指定的路径。', 'err'], ['        0 个文件已复制', 'cm']], exp: '目标目录"备份"还不存在——先点 ① md 备份。这就是"前置校验"：真实 CMD 也会这样一步步报错。' };
+      var src = fsAt(['文档', '报告.docx']);
+      FS['备份'].kids['报告.docx'] = { bytes: src.bytes, ts: 57 };
+      fsMark('备份'); fsMark('备份\\报告.docx');
+      return { ok: 1, out: [['已复制         1 个文件。', 'ok']],
+        exp: '<b>copy</b> 复制文件：源文件还在 文档\\，备份\\ 里多了一份一模一样的。末尾的 <code class="inline">\\</code> 表示"复制进这个目录"。copy 一次只能复制文件，要连子目录得用 xcopy /s 或 robocopy /E。' };
+    }},
+    { label: '③ move 文档\\旧版-报告.docx 备份\\', cmd: 'move 文档\\旧版-报告.docx 备份\\', run: function () {
+      if (!fsAt(['文档', '旧版-报告.docx'])) return { ok: 0, out: [['系统找不到指定的文件。', 'err'], ['        0 个文件已移动。', 'cm']], exp: '源文件不在（已经移动过了？）。move 是"复制+删除原文件"，源文件只存在于新位置。' };
+      if (!fsAt(['备份']) || !fsAt(['备份']).dir) return { ok: 0, out: [['系统找不到指定的路径。', 'err'], ['        0 个文件已移动。', 'cm']], exp: '目标目录不存在，先点 ①。' };
+      var src = fsAt(['文档', '旧版-报告.docx']);
+      FS['备份'].kids['旧版-报告.docx'] = { bytes: src.bytes, ts: 58 };
+      delete FS['文档'].kids['旧版-报告.docx'];
+      fsMark('文档'); fsMark('备份'); fsMark('备份\\旧版-报告.docx');
+      return { ok: 1, out: [['移动了         1 个文件。', 'ok']],
+        exp: '<b>move</b> = 复制 + 删除原文件。注意左边树：旧版-报告.docx 从 文档\\ 消失，出现在 备份\\ 里。整理归档、给文件挪窝全靠它（跨盘符也一样用）。' };
+    }},
+    { label: '④ ren todo.txt 待办.txt', cmd: 'ren todo.txt 待办.txt', run: function () {
+      if (!FS['todo.txt']) {
+        if (FS['待办.txt']) return { ok: 0, out: [['存在重名文件，或是找不到文件。', 'err']], exp: '真实报错：待办.txt 已经存在（刚才已经改过名了）。ren 不会覆盖同名文件。' };
+        return { ok: 0, out: [['系统找不到指定的文件。', 'err']], exp: 'todo.txt 不存在（被你折腾没了？重置再来）。' };
+      }
+      FS['待办.txt'] = FS['todo.txt'];
+      delete FS['todo.txt'];
+      fsMark('待办.txt');
+      return { ok: 1, out: [['（又是静默成功。ren 从不多话。）', 'cm']],
+        exp: '<b>ren</b>（rename）改名：<code class="inline">ren 旧名 新名</code>，只改名字不挪位置，且必须在同一个目录里。成功时无输出。支持通配符：ren *.jpeg *.jpg 一键批量改扩展名。' };
+    }},
+    { label: '⑤ attrib +h 文档\\密码本.txt', cmd: 'attrib +h 文档\\密码本.txt', run: function () {
+      var f = fsAt(['文档', '密码本.txt']);
+      if (!f) return { ok: 0, out: [['找不到文件 - 文档\\密码本.txt', 'err']], exp: '文件不存在。attrib 找不到目标时会明确告诉你路径。' };
+      f.hidden = 1;
+      fsMark('文档\\密码本.txt');
+      return { ok: 1, out: [['（静默成功。看左边树：密码本.txt 变灰了——它还在，只是带上了"隐藏"属性。）', 'cm']],
+        exp: '<b>attrib +h</b> 给文件加隐藏属性（+s 系统属性、+r 只读同理）。注意：<b>隐藏 ≠ 加密</b>，知道路径的人照样能打开，只是"看不见"。取消隐藏用 <code class="inline">attrib -h</code>（下一个按钮）。' };
+    }},
+    { label: '⑥ dir 文档（验证隐藏效果）', cmd: 'dir 文档', run: function () {
+      var d = fsAt(['文档']);
+      if (!d) return { ok: 0, out: [['系统找不到指定的路径。', 'err']], exp: '文档 目录不存在。' };
+      var lines = [' C:\\练习\\文档 的目录', ''];
+      var hiddenN = 0;
+      Object.keys(d.kids).forEach(function (k) { if (d.kids[k].hidden) hiddenN++; });
+      dirRowsOf(d).forEach(function (l) { lines.push(l); });
+      var out = lines.map(function (l) { return [l, l.indexOf('个文件') >= 0 ? 'ok' : '']; });
+      if (hiddenN) out.push(['', ''], ['（发现了吗？密码本.txt 不见了！它没被删——左边树里还在，只是被 attrib +h 藏起来了。dir 默认不显示隐藏文件，dir /a 才能看见。再点 ⑦ 后回来重跑这条对比。）', 'cm']);
+      return { ok: 1, out: out,
+        exp: hiddenN ? '<b>dir</b> 输出三列：修改时间、&lt;DIR&gt; 或字节数、文件名。文件少了 1 个：被隐藏的不显示。<code class="inline">dir /a</code> = 显示包括隐藏在内的所有文件。' : '标准 dir 输出：修改时间、&lt;DIR&gt; 标记或字节数、文件名，最后一行是统计。这就是最常用的"看目录"姿势。' };
+    }},
+    { label: '⑦ attrib -h 文档\\密码本.txt', cmd: 'attrib -h 文档\\密码本.txt', run: function () {
+      var f = fsAt(['文档', '密码本.txt']);
+      if (!f) return { ok: 0, out: [['找不到文件 - 文档\\密码本.txt', 'err']], exp: '文件不存在。' };
+      if (!f.hidden) return { ok: 1, out: [['（它本来就没藏。先点 ⑤ 再来体验一次？）', 'cm']], exp: 'attrib -h 撤销隐藏属性。文件已经可见，无需操作。' };
+      delete f.hidden;
+      fsMark('文档\\密码本.txt');
+      return { ok: 1, out: [['（静默成功。树里密码本.txt 恢复白色。可以回头再点 ⑥ dir 文档 验证它回来了。）', 'cm']],
+        exp: '<b>attrib -h</b> 撤销隐藏属性。+ 加 / - 减，这是 attrib 的通用语法：attrib +r 只读、-r 取消只读。' };
+    }},
+    { label: '⑧ del 备份\\旧版-报告.docx', cmd: 'del 备份\\旧版-报告.docx', run: function () {
+      var b = fsAt(['备份']);
+      if (!b || !b.dir || !b.kids['旧版-报告.docx']) return { ok: 0, out: [['找不到 C:\\练习\\备份\\旧版-报告.docx', 'err']], exp: '真实报错。目标不存在：也许还没 move 过去（先点 ③），或者已经删过了。' };
+      delete b.kids['旧版-报告.docx'];
+      fsMark('备份');
+      return { ok: 1, out: [['（又是静默……但这次是"危险的无声"。看左边树：文件没了。', 'cm'], ['⚠ 它不进回收站！资源管理器里也找不回来了。', 'hl']], exp: '<b>del</b> 直接删除文件，<b>不经过回收站</b>，没有确认弹窗。配合通配符 <code class="inline">del 备份\\*.docx</code> 会批量秒删。删前先 dir 确认，是命令行保命第一课。' };
+    }},
+    { label: '⑨ rd /s /q 备份', cmd: 'rd /s /q 备份', run: function () {
+      if (!fsAt(['备份'])) return { ok: 0, out: [['系统找不到指定的文件。', 'err']], exp: '备份 目录不存在（已经删过了，或还没建）。' };
+      var c = fsCount(fsAt(['备份']));
+      delete FS['备份'];
+      if (window.__dirLabRefresh) window.__dirLabRefresh();
+      return { ok: 1, out: [['（静默。备份 目录连同里面 ' + (c.files + c.dirs) + ' 个文件/子目录，瞬间蒸发——', 'cm'], ['⚠ 回收站里也找不到。这就是 rd /s /q 的威力与危险。', 'hl']], exp: '<b>rd</b> 只能删空目录；<code class="inline">rd /s</code> 连内容一起删；<code class="inline">/q</code> 免确认（quiet）。三条组合 = 无提示递归强删，脚本里常用，手敲时务必看清路径再回车。', expCls: 'bad' };
+    }}
+  ];
+
+  function paintExp(r) {
+    expEl.className = 'explain' + (r.expCls ? ' ' + r.expCls : (r.ok ? ' good' : ' bad'));
+    expEl.innerHTML = r.exp;
+  }
+  btnsEl.innerHTML = CMDS.map(function (c, i) {
+    return '<button class="opt" type="button" data-c="' + i + '">' + esc(c.label) + '</button>';
+  }).join('');
+  btnsEl.addEventListener('click', function (e) {
+    var b = e.target.closest('.opt');
+    if (!b) return;
+    var c = CMDS[+b.dataset.c];
+    logCmd(c.cmd);
+    var r = c.run();
+    r.out.forEach(function (l) { logLine(l[0], l[1]); });
+    log('');
+    paintExp(r);
+    renderTree();
+    if (window.__dirLabRefresh) window.__dirLabRefresh();
+  });
+  function init() {
+    FS = fsClone(FS_TPL);
+    MARKS = {};
+    logEl.innerHTML = '';
+    log('<span class="cm">命令行学院 · 文件操作台 —— 左边是虚拟硬盘的"上帝视角"，这里的一切都是假的，随便折腾。</span>');
+    log('<span class="cm">建议按 ①→⑨ 顺序点；乱点也行，会看到和真 CMD 一模一样的报错。</span>');
+    log('');
+    expEl.className = 'explain';
+    expEl.innerHTML = '👆 点一个命令按钮，这里会解释它做了什么、为什么这么输出。';
+    renderTree();
+  }
+  document.getElementById('fot-reset').addEventListener('click', function () {
+    init();
+    if (window.__dirLabRefresh) window.__dirLabRefresh();
+  });
+  init();
+})();
+
+/* ============ 互动2：dir 参数调参器 ============ */
+(function () {
+  var chA = document.getElementById('dl-a');
+  var chB = document.getElementById('dl-b');
+  var chS = document.getElementById('dl-s');
+  var selO = document.getElementById('dl-o');
+  var outEl = document.getElementById('dl-out');
+  var cmdEl = document.getElementById('dl-cmd');
+  var expEl = document.getElementById('dl-exp');
+
+  function pad(s, n) { s = String(s); while (s.length < n) s = ' ' + s; return s; }
+  function timeOf(v) { return '2026/10/26  09:' + String(v.ts).padStart(2, '0'); }
+  function rowStr(name, v) {
+    return timeOf(v) + '    ' + (v.dir ? '<DIR>          ' : pad(v.bytes.toLocaleString('en-US'), 13) + ' ') + name;
+  }
+  function visibleKids(node) {
+    return Object.keys(node.kids).filter(function (k) { return chA.checked || !node.kids[k].hidden; });
+  }
+  function sortNames(node, names) {
+    var mode = selO.value || 'n';
+    var dirs = [], files = [];
+    names.forEach(function (k) { (node.kids[k].dir ? dirs : files).push(k); });
+    function byName(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
+    var fsort = byName;
+    if (mode === 's') fsort = function (a, b) { return node.kids[a].bytes - node.kids[b].bytes; };
+    if (mode === 'd') fsort = function (a, b) { return node.kids[a].ts - node.kids[b].ts; };
+    dirs.sort(byName); files.sort(fsort);
+    return dirs.concat(files);
+  }
+
+  function render() {
+    var cmd = 'dir' + (chA.checked ? ' /a' : '') + (selO.value ? ' /o:' + selO.value : '') + (chB.checked ? ' /b' : '') + (chS.checked ? ' /s' : '');
+    cmdEl.textContent = 'C:\\练习> ' + cmd;
+    var lines = [];   // [text, cls]
+    var g = { files: 0, bytes: 0, dirs: 0 };
+
+    function emitDir(path, node) {
+      var names = sortNames(node, visibleKids(node));
+      if (chB.checked) {
+        names.forEach(function (k) {
+          lines.push([chS.checked ? 'C:\\练习' + (path ? '\\' + path : '') + '\\' + k : k, '']);
+        });
+        return;
+      }
+      lines.push([' ' + 'C:\\练习' + (path ? '\\' + path : '') + ' 的目录', 'hl']);
+      lines.push(['', '']);
+      var nf = 0, nb = 0;
+      names.forEach(function (k) {
+        var v = node.kids[k];
+        lines.push([rowStr(k, v), v.dir ? 'ok' : '']);
+        if (v.dir) g.dirs++; else { g.files++; g.bytes += v.bytes; nf++; nb += v.bytes; }
+      });
+      g.dirs++; /* 本目录自身 */
+      lines.push(['', '']);
+      lines.push([pad(nf, 11) + ' 个文件' + (nb ? pad(nb.toLocaleString('en-US'), 14) + ' 字节' : ''), 'cm']);
+      lines.push(['', '']);
+    }
+
+    if (chS.checked) {
+      (function walk(node, path) {
+        emitDir(path, node);
+        Object.keys(node.kids).sort().forEach(function (k) {
+          if (node.kids[k].dir && (chA.checked || !node.kids[k].hidden)) walk(node.kids[k], path ? path + '\\' + k : k);
+        });
+      })( { kids: FS }, '');
+      if (!chB.checked) {
+        lines.push(['     文件总数:', 'hl'], [pad(g.files, 13) + ' 个文件', '']);
+        lines.push(['      字节总数:', 'hl'], [pad(g.bytes.toLocaleString('en-US'), 15) + ' 字节', '']);
+        lines.push(['     目录总数:', 'hl'], [pad(g.dirs, 13) + ' 个目录    15,876,993,024 可用字节', '']);
+      }
+    } else {
+      emitDir('', { kids: FS });
+    }
+    outEl.innerHTML = lines.map(function (l) {
+      return '<span' + (l[1] ? ' class="' + l[1] + '"' : '') + '>' + esc(l[0]) + '</span>';
+    }).join('\n');
+
+    var tips = ['dir 默认按名称排序，隐藏文件不显示。'];
+    if (chA.checked) tips.push('<b>/a</b> 把隐藏文件也列出来了（找找 desktop.ini）。');
+    if (selO.value === 's') tips.push('<b>/o:s</b> 按大小从小到大排（想从大到小？<code class="inline">/o:s-</code>，减号反序）。');
+    if (selO.value === 'd') tips.push('<b>/o:d</b> 按修改时间从旧到新排（<code class="inline">/o:d-</code> 最新在前）。');
+    if (chB.checked) tips.push('<b>/b</b> 简洁模式：去掉日期、统计，只留名字——这是给"程序"看的格式，脚本里最常用。');
+    if (chS.checked) tips.push('<b>/s</b> 递归列出所有子目录，并给出总计。找文件全盘搜：<code class="inline">dir /s /b 报告.docx</code>。');
+    if (!chA.checked && !chB.checked && !chS.checked && !selO.value) tips.push('试试把上面的开关全打开，看看输出怎么变。');
+    expEl.innerHTML = tips.join('<br>');
+  }
+  [chA, chB, chS].forEach(function (c) { c.addEventListener('change', render); });
+  selO.addEventListener('change', render);
+  window.__dirLabRefresh = render;
+  render();
+})();
+
+/* ============ 互动3：robocopy 场景生成器 ============ */
+(function () {
+  var SRC = '"C:\\练习\\照片"', DST = '"D:\\备份\\照片"';
+  var SCENES = [
+    { name: '镜像备份（推荐先学）', cmd: 'robocopy ' + SRC + ' ' + DST + ' /MIR /R:2 /W:3',
+      scene: '把照片库完整备份到移动硬盘，并且两边永远保持一模一样——源里删了的，备份里也删。',
+      notes: [['/MIR', 'mirror 镜像：目标变成源的复制品。源里没有的（目标多出来的）会被删除——这是它强大也是它危险的地方。'], ['/R:2', '失败最多重试 2 次。默认是 100 万次！不 改 这个，网络备份会卡到怀疑人生。'], ['/W:3', '每次重试之间等 3 秒。']],
+      warn: '方向千万不能写反：robocopy 源 目标，/MIR 以"源"为准清理"目标"。把 U 盘旧内容镜像到电脑新照片库 = 新照片全没。' },
+    { name: '增量同步（只加不删）', cmd: 'robocopy ' + SRC + ' ' + DST + ' /E /XO',
+      scene: '定期把新照片补进备份，但不想让备份端的任何东西被删掉——最安全的日常同步。',
+      notes: [['/E', '连所有子目录（含空目录）一起复制。'], ['/XO', 'exclude older：目标里已经存在的同名且不比源旧的文件跳过，只复制新增和更新过的。']],
+      warn: '' },
+    { name: '大文件断点续传', cmd: 'robocopy "C:\\练习\\视频" "\\\\NAS\\影视" /Z /R:5 /W:5',
+      scene: '往 NAS / 网络盘拷几十 GB 的大视频，最怕半夜断网前功尽弃。',
+      notes: [['/Z', '可重启模式：中断后重跑同一条命令，从断点继续传，不从头再来。'], ['/R:5 /W:5', '重试 5 次、间隔 5 秒，避免死等。']],
+      warn: '/Z 模式速度略慢于普通模式——保平安的代价，值得。' },
+    { name: '多线程加速', cmd: 'robocopy ' + SRC + ' "E:\\照片" /E /MT:16',
+      scene: 'SSD 之间搬几千张照片，普通单线程复制太慢。',
+      notes: [['/E', '连所有子目录一起复制。'], ['/MT:16', '16 线程并行复制（默认 8，最大 128）。海量小文件场景提升可达数倍。']],
+      warn: '机械硬盘对机械硬盘别开太高线程数，磁头来回报销得更慢。' },
+    { name: '排除临时文件', cmd: 'robocopy "C:\\项目" "D:\\项目备份" /E /XF *.tmp /XD node_modules',
+      scene: '备份写代码的项目文件夹：.tmp 垃圾文件和 node_modules 依赖目录不想进备份。',
+      notes: [['/XF *.tmp', 'exclude file：排除所有 .tmp 文件，支持通配符，可写多组空格隔开。'], ['/XD node_modules', 'exclude directory：整个 node_modules 目录跳过。']],
+      warn: '排除 .git 也很常见：/XD .git node_modules dist' }
+  ];
+  var btns = document.getElementById('rc-btns');
+  var detail = document.getElementById('rc-detail');
+  btns.innerHTML = SCENES.map(function (s, i) {
+    return '<button class="opt' + (i === 0 ? ' correct' : '') + '" type="button" data-s="' + i + '">' + esc(s.name) + '</button>';
+  }).join('');
+  function pick(i) {
+    var s = SCENES[i];
+    btns.querySelectorAll('.opt').forEach(function (x) { x.classList.toggle('correct', +x.dataset.s === i); });
+    var html = '<h3 style="color:var(--brand)">场景：' + s.scene + '</h3>' +
+      '<pre class="code">' + esc(s.cmd) + '</pre><ul style="margin:8px 0 4px;padding-left:22px">' +
+      s.notes.map(function (n) { return '<li><code class="inline">' + esc(n[0]) + '</code> —— ' + n[1] + '</li>'; }).join('') + '</ul>';
+    if (s.warn) html += '<div class="callout warn">' + s.warn + '</div>';
+    detail.innerHTML = html;
+  }
+  btns.addEventListener('click', function (e) {
+    var b = e.target.closest('.opt');
+    if (b) pick(+b.dataset.s);
+  });
+  pick(0);
+})();
+
+/* ============ 互动4：通配符实验室 ============ */
+(function () {
+  var FILES = ['报告.docx', '旧版-报告.docx', '报告-v2.docx', 'todo.txt', '待办.txt', '旅游.jpg', '聚会.jpg', '密码本.txt'];
+  var PRESETS = [
+    { p: '*', why: '单独一个 * 匹配所有文件——相当于"全部选中"。' },
+    { p: '*.jpg', why: '星号在最前面：只要扩展名是 .jpg 就命中，不管文件名叫什么。最常用的批量姿势。' },
+    { p: '*.docx', why: '同理，抓出所有 Word 文档。' },
+    { p: '报告*', why: '以"报告"开头、后面随便：命中 报告.docx、报告-v2.docx；不命中 旧版-报告.docx（开头不对）。' },
+    { p: '报告-??.docx', why: '问号 ? 只匹配"恰好 1 个字符"：报告- 后面跟任意 2 个字符才命中，所以 报告-v2.docx 命中，报告.docx 不命中（长度不够）。' },
+    { p: '????.txt', why: '4 个问号 = 文件名部分必须恰好 4 个字符：todo.txt（t-o-d-o 四个字母）命中；待办.txt 只有 2 个字符、密码本.txt 只有 3 个，都不行。' }
+  ];
+  var box = document.getElementById('wc-presets');
+  var input = document.getElementById('wc-input');
+  var list = document.getElementById('wc-list');
+  var exp = document.getElementById('wc-exp');
+  box.innerHTML = PRESETS.map(function (x, i) {
+    return '<button class="opt" type="button" data-p="' + i + '"><code class="inline">' + esc(x.p) + '</code></button>';
+  }).join('');
+  function toRegex(p) {
+    var e = p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    e = e.replace(/\\\*/g, '.*').replace(/\\\?/g, '.');
+    try { return new RegExp('^' + e + '$', 'i'); } catch (ex) { return null; }
+  }
+  function render() {
+    var p = input.value;
+    var re = toRegex(p);
+    var hits = 0;
+    list.innerHTML = '<div style="font-family:Consolas,monospace;font-size:13px;color:#94a3b8;margin-bottom:6px">文件池（青色 = 被当前模式命中）：</div>' +
+      FILES.map(function (f) {
+        var hit = re && re.test(f);
+        if (hit) hits++;
+        return '<div class="ln' + (hit ? ' on' : '') + '" style="' + (hit ? '' : 'opacity:.4') + '">' + (hit ? '✔ ' : '· ') + esc(f) + '</div>';
+      }).join('');
+    var preset = null;
+    PRESETS.forEach(function (x) { if (x.p === p) preset = x; });
+    var why;
+    if (!p) why = '输入一个模式试试，比如 <code class="inline">*.jpg</code>。';
+    else if (!re) why = '这个模式无法解析（含非法字符）。';
+    else if (preset) why = preset.why;
+    else {
+      why = '模式解读：';
+      if (p.indexOf('*') >= 0) why += '<code class="inline">*</code> = 任意长度的任意字符；';
+      if (p.indexOf('?') >= 0) why += '<code class="inline">?</code> = 恰好 1 个字符；';
+      why += ' Windows 文件名匹配不区分大小写。';
+    }
+    exp.innerHTML = '<b>「' + esc(p || '（空）') + '」命中 ' + hits + ' / ' + FILES.length + ' 个文件。</b><br>' + why;
+  }
+  box.addEventListener('click', function (e) {
+    var b = e.target.closest('.opt');
+    if (!b) return;
+    input.value = PRESETS[+b.dataset.p].p;
+    render();
+  });
+  input.addEventListener('input', render);
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段⑥ PowerShell 与脚本自动化 —— 毕业课 · 命令行学院</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="bar">
+    <span class="brand"><span class="logo">&gt;_</span>命令行学院</span>
+    <nav class="nav">
+      <a href="index.html">课程总览</a>
+      <a href="stage1.html">① 终端入门</a>
+      <a href="stage2.html">② 文件与目录</a>
+      <a href="stage3.html">③ 文本与管道</a>
+      <a href="stage4.html">④ 网络诊断</a>
+      <a href="stage5.html">⑤ 系统管理</a>
+      <a href="stage6.html">⑥ PowerShell 与脚本</a>
+      <a href="cheatsheet.html">⌨ 速查表</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" style="padding:30px 32px">
+    <span class="tag">阶段 ⑥ · 预计 2 天 · 毕业课</span>
+    <h1 style="font-size:24px">PowerShell 与脚本自动化 —— 毕业课</h1>
+    <p class="lead">阶段目标：理解"对象管道"为什么是对 CMD 的降维打击；能读懂并写出 .bat 脚本；亲手完成毕业任务，拿到命令行学院毕业证。</p>
+    <div class="pwrap">
+      <div class="progress"><div class="fill" data-progress-bar="6"></div></div>
+      <span class="plabel" data-progress-label="6"></span>
+    </div>
+  </section>
+
+  <!-- ============ 动画课堂 ============ -->
+  <section class="section">
+    <h2>🎬 动画课堂 · 《CMD 的接班人：对象管道》</h2>
+    <p class="muted">约 1 分钟 · ▶ 播放 / 空格暂停 / 可拖进度 / 可调速。同一道题——"找出吃 CPU 前三名"——CMD 和 PowerShell 各会怎么做？看完你就懂微软为什么说"自动化请优先用 PowerShell"。</p>
+    <div class="lesson" id="lesson6">
+      <div class="screen"><div class="theater" id="th6">
+        <div class="row">
+          <div class="panel col" id="p6-cmdP"><h4>⌨ CMD 的世界</h4>
+            <pre class="th-code" data-dyn id="p6-code"></pre>
+          </div>
+          <div class="col" style="flex:0 0 170px;max-width:170px">
+            <div class="th-pipe">
+              <div class="env" id="p6-env" data-fx>📦 一堆文本</div>
+            </div>
+            <div class="note" data-dyn id="p6-flow"></div>
+          </div>
+          <div class="panel col" id="p6-psP"><h4>⚡ PowerShell 的世界</h4>
+            <div data-dyn id="p6-objs" style="min-height:120px"></div>
+            <div class="th-mono" data-dyn id="p6-out" style="min-height:60px;margin-top:8px"></div>
+          </div>
+        </div>
+        <div class="center-x" style="margin-top:14px">
+          <span class="pill" id="p6-s1">Get-Process</span>
+          <span class="pill" id="p6-s2">Where-Object</span>
+          <span class="pill" id="p6-s3">Sort-Object</span>
+          <span class="pill" id="p6-s4">Select-Object</span>
+        </div>
+        <div class="note" data-dyn id="p6-note"></div>
+      </div></div>
+    </div>
+  </section>
+  <script src="assets/lesson-player.js"></script>
+  <script>
+  (function () {
+    var PROCS = [
+      { n: 'chrome', cpu: 312, m: '512MB' },
+      { n: 'code', cpu: 288, m: '768MB' },
+      { n: 'node', cpu: 156, m: '256MB' },
+      { n: 'steam', cpu: 132, m: '410MB' },
+      { n: 'WeChat', cpu: 88, m: '380MB' },
+      { n: 'notepad', cpu: 12, m: '12MB' },
+      { n: 'explorer', cpu: 3, m: '82MB' },
+      { n: 'System', cpu: 0.1, m: '0.1MB' }
+    ];
+    var CMDTXT = [
+      'C:\\> tasklist',
+      '',
+      '映像名               PID      内存',
+      '================= ======= =========',
+      'System                  4     144 K',
+      'explorer.exe         1204  82,944 K',
+      'chrome.exe           3120 512,000 K',
+      'code.exe             8812 768,000 K',
+      'node.exe             4520 256,000 K',
+      'steam.exe            6600 410,112 K',
+      '……（几百行滚动而过）'
+    ].join('\n');
+    var TABLE = [
+      'PS> Get-Process | Where-Object {$_.CPU -gt 100} |',
+      '    Sort-Object CPU -Descending | Select-Object -First 3',
+      '',
+      ' NPM(K)   PM(M)  CPU(s)     Id ProcessName',
+      ' ------   -----  ------     -- -----------',
+      '    211     512  312.45   3120 chrome',
+      '    388     768  288.10   8812 code',
+      '     97     256  156.33   4520 node'
+    ].join('\n');
+    var COMPARE = [
+      '                CMD              PowerShell',
+      '────────────   ──────────────   ────────────────',
+      '世界里流动的      一堆纯文本          结构化对象',
+      '取一个属性        切词/正则硬抠       $_.CPU 点一下',
+      '过滤             findstr 子串        Where-Object 任意比较',
+      '输出格式         每个工具各玩各的     全系统统一，天然表格'
+    ].join('\n');
+
+    function paintObjs(th, i) {
+      var box = th.querySelector('#p6-objs');
+      if (i < 2) { box.innerHTML = '<span style="color:#64748b;font-size:13px">（这里即将出现 8 个"进程对象"…）</span>'; return; }
+      var pass = PROCS.filter(function (p) { return p.cpu > 100; }).sort(function (a, b) { return b.cpu - a.cpu; });
+      var dropped = PROCS.filter(function (p) { return p.cpu <= 100; });
+      var list = i >= 5 ? pass.concat(dropped) : PROCS.slice();
+      box.innerHTML = list.map(function (p, idx) {
+        var cls = 'objcard';
+        if (p.cpu <= 100 && i >= 4) cls += ' drop';
+        if (i >= 6 && idx >= 3) cls += ' drop';
+        if (i >= 7 && p.cpu > 100 && idx < 3) cls += ' on';
+        return '<span class="' + cls + '"><span class="oname">' + p.n + '</span> <span class="prop">CPU ' + p.cpu + '% · ' + p.m + '</span></span>';
+      }).join('');
+    }
+    var LEFTS = ['8%', '22%', '36%', '48%', '58%', '68%', '78%', '88%', '60%', '40%'];
+    var S = [
+      { d: 6, cap: 'CMD 的老问题：tasklist 只吐纯文本，连 CPU 占用都不给。想找"吃 CPU 前三名"？只能肉眼扫几百行，再拿 findstr 硬抠数字——文本的世界，一切靠切。', set: { 'p6-code': CMDTXT, 'p6-note': 'CMD：想按 CPU 排序？没门，数据里根本没有这列。' }, cls: { 'p6-cmdP': 'on' } },
+      { d: 5, cap: 'PowerShell 登场。它的命令遵循"动词-名词"命名：Get-Process 拿进程、Stop-Service 停服务。不用背——想干什么（动词）+ 对谁干（名词），Tab 补全帮你找。', set: { 'p6-note': 'Get / Set / Stop / Start + Process / Service / Item…', 'p6-flow': 'cmdlet 按名索骥' }, cls: { 'p6-s1': 'on' } },
+      { d: 6, cap: 'Get-Process 一跑，8 个进程对象出来了。注意：每个卡片不是一行文本，而是一个"活的对象"——CPU、内存这些属性都长在它身上，随取随用。', set: { 'p6-flow': '8 个进程对象', 'p6-env': '🧩 一堆对象', 'p6-note': 'Get-Process：吐出来的不是文本，是对象' }, cls: { 'p6-psP': 'on' } },
+      { d: 5, cap: '管道 | 在 PowerShell 里依然是接力棒——但接力的不是文本，是对象。上一个命令产出的对象，原封不动递给下一个，属性全程不丢。', set: { 'p6-note': '| 里流动的是对象，属性一路都在' }, cls: { 'p6-s1': 'good' } },
+      { d: 6, cap: 'Where-Object {$_.CPU -gt 100}：$_ 代表管道里"当前的这一个"对象，.CPU 点出属性，-gt 就是大于。四个不符合条件的当场出局——注意它们不是被切开了，是被"筛"走的。', set: { 'p6-note': '$_.CPU -gt 100 —— 点属性、比大小，所见即所得' }, cls: { 'p6-s2': 'on' } },
+      { d: 6, cap: 'Sort-Object CPU -Descending：按 CPU 属性从大到小排队。因为排序的是对象，属性天然是数字——不用先切出"第 7 列"再转数字，CMD 时代的噩梦直接消失。', set: { 'p6-note': '对象排序：属性即数字，不用切文本' }, cls: { 'p6-s3': 'on' } },
+      { d: 5, cap: 'Select-Object -First 3：只要前三名。至此四段管道接完，全程没有碰过一丁点文本。', set: { 'p6-note': '-First 3 —— 取前三，收工' }, cls: { 'p6-s4': 'on' } },
+      { d: 7, cap: '合体成一行命令。右边这四行表格，是 CMD 里要肉眼扫描 + 手动切列才能挤出来的答案——在 PowerShell 里是一条管道自然流出来的。', set: { 'p6-out': TABLE, 'p6-note': '一行顶 CMD 十行' }, cls: { 'p6-s2': 'good', 'p6-s3': 'good', 'p6-s4': 'good' } },
+      { d: 6, cap: '对比两个世界：CMD 万物皆文本，全靠切词和正则硬抠；PowerShell 万物皆对象，属性点一下就到手。这不是语法升级，是世界观升级。', set: { 'p6-out': COMPARE, 'p6-env': '🆚 两个世界', 'p6-note': '文本 vs 对象：切词 vs 点属性' } },
+      { d: 6, cap: '毕业赠言：万物皆对象，是 PowerShell 的灵魂；而今天学的对象管道、批处理脚本，会让你的电脑开始"自己干活"。往下走，做最后的练习，然后领取毕业证！', set: { 'p6-note': '▼ 往下滚动：对照表、实验室、毕业任务' }, cls: { 'p6-cmdP': 'dim', 'p6-psP': 'good' } }
+    ];
+    new LessonPlayer({
+      root: '#lesson6', title: 'CMD 的接班人：对象管道', scenes: S.map(function (s, i) {
+        return { d: s.d, cap: s.cap, set: s.set, cls: s.cls, a: function (th) { paintObjs(th, i); th.querySelector('#p6-env').style.left = LEFTS[i]; } };
+      })
+    });
+  })();
+  </script>
+
+  <!-- ============ 互动1：CMD↔PowerShell 对照转换器 ============ -->
+  <section class="section">
+    <h2>互动 1 · CMD ↔ PowerShell 对照转换器</h2>
+    <p class="muted">好消息：CMD 的命令在 PowerShell 里<b>大多照样能跑</b>。但想成为高手，得认识 PowerShell 里的"正规军"（cmdlet）。点一个 CMD 命令，看它在 PowerShell 里的亲兄弟。</p>
+    <div class="card">
+      <div class="opts" id="cc-btns"></div>
+      <div id="cc-detail" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <!-- ============ 互动2：对象管道实验室 ============ -->
+  <section class="section">
+    <h2>互动 2 · 对象管道实验室（亲手接一条对象流水线）</h2>
+    <p class="muted">同一批进程对象，勾选管道工序，看对象怎么被"筛 → 排 → 取"。右侧卡片实时同步：<span style="color:#0f766e">发光=当前入选</span>，灰色=已被淘汰。</p>
+    <div class="card">
+      <div class="plrow">
+        <div class="plstage on"><span class="lb">第 1 步 · 固定</span>Get-Process</div>
+        <span class="plarrow">|</span>
+        <div class="plstage" id="lb-w"><span class="lb">勾选启用</span>Where-Object</div>
+        <span class="plarrow">|</span>
+        <div class="plstage" id="lb-s"><span class="lb">勾选启用</span>Sort-Object</div>
+        <span class="plarrow">|</span>
+        <div class="plstage" id="lb-f"><span class="lb">勾选启用</span>Select-Object</div>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;margin:6px 0 10px">
+        <label class="switchline"><input type="checkbox" id="lbw"><span>接入 <b>Where-Object {$_.CPU -gt 100}</b>（只留 CPU&gt;100）</span></label>
+        <label class="switchline"><input type="checkbox" id="lbs"><span>接入 <b>Sort-Object CPU -Descending</b>（按 CPU 降序）</span></label>
+        <label class="switchline"><input type="checkbox" id="lbf"><span>接入 <b>Select-Object -First 3</b>（取前三）</span></label>
+      </div>
+      <div style="background:var(--code-bg);border-radius:10px;padding:12px 14px" id="lb-objs"></div>
+      <div class="term" style="margin-top:10px">
+        <div class="term-bar">
+          <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+          <span class="ttitle">对象管道实验室 · PowerShell</span>
+        </div>
+        <div class="term-body" id="lb-out"></div>
+      </div>
+      <div class="explain" id="lb-exp"></div>
+    </div>
+  </section>
+
+  <!-- ============ 互动3：批处理逐行精讲 ============ -->
+  <section class="section">
+    <h2>互动 3 · 批处理逐行精讲：你的第一个备份脚本</h2>
+    <p class="muted">把前面学的 md、robocopy、退出码串成一个<b>每天都能用的备份脚本</b>。<b>点击任意一行</b>看讲解；点「▶ 模拟运行」看它跑起来的样子。</p>
+    <div class="lab-grid">
+      <div>
+        <div style="background:var(--code-bg);border-radius:10px;padding:12px 18px" id="bat-lines"></div>
+        <button class="btn primary" type="button" id="bat-run" style="margin-top:10px">▶ 模拟运行</button>
+        <button class="btn" type="button" id="bat-clear" style="margin-top:10px">清屏</button>
+      </div>
+      <div class="card">
+        <h3 id="bat-title" style="color:var(--brand)">👆 点左边任意一行</h3>
+        <p id="bat-desc">这是 backup.bat——一个完整可用的照片镜像备份脚本，用记事本保存到任意位置（比如 C:\Scripts\backup.bat）就能双击运行。</p>
+      </div>
+    </div>
+    <div class="term" style="margin-top:12px">
+      <div class="term-bar">
+        <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+        <span class="ttitle">C:\Scripts · 模拟运行</span>
+      </div>
+      <div class="term-body" id="bat-out"></div>
+    </div>
+  </section>
+
+  <!-- ============ 互动4：PowerShell 脚本入门 ============ -->
+  <section class="section">
+    <h2>互动 4 · PowerShell 脚本入门：.ps1 与"三板斧"</h2>
+    <div class="grid g2">
+      <div class="card">
+        <h3>📜 .bat vs .ps1</h3>
+        <table class="tbl">
+          <thead><tr><th></th><th>.bat 批处理</th><th>.ps1 脚本</th></tr></thead>
+          <tbody>
+            <tr><td>语法</td><td>CMD 老语法</td><td>PowerShell（现代语言）</td></tr>
+            <tr><td>双击运行</td><td>✅ 直接跑</td><td>❌ 默认用记事本打开（防误触，安全设计）</td></tr>
+            <tr><td>怎么跑</td><td>双击 / cmd 里输文件名</td><td>右键"使用 PowerShell 运行"，或在 PS 里 <code class="inline">.\脚本名.ps1</code></td></tr>
+            <tr><td>能力上限</td><td>串命令、简单逻辑</td><td>真编程语言：异常处理、模块、连 API</td></tr>
+          </tbody>
+        </table>
+        <div class="callout info" style="margin-top:10px"><b>执行策略（第一次跑 .ps1 必遇的坎）：</b>Windows 默认禁止运行任何脚本（防病毒）。学脚本第一步，用<b>管理员不需要</b>的这条放开限制：<br><code class="inline">Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code><br>含义：只改当前用户；本地脚本随便跑，从网上下载的要有签名。改完一次管一辈子。</div>
+      </div>
+      <div class="card">
+        <h3>🪓 自学三板斧（不用背命令的秘诀）</h3>
+        <div class="card" style="box-shadow:none;margin-bottom:10px"><h3>① Get-Help</h3>
+          <pre class="code">Get-Help Get-Process -Examples</pre>
+          <p class="muted" style="font-size:13px">PowerShell 版的 <code class="inline">/?</code>，-Examples 直接给例题。还有 <code class="inline">-Full</code> 看完整手册、<code class="inline">-Online</code> 打开网页版。</p></div>
+        <div class="card" style="box-shadow:none;margin-bottom:10px"><h3>② Get-Command</h3>
+          <pre class="code">Get-Command *process*</pre>
+          <p class="muted" style="font-size:13px">"跟 process 有关的命令都有啥？"——按关键词搜命令，忘记全名时的救命稻草。</p></div>
+        <div class="card" style="box-shadow:none"><h3>③ Get-Member</h3>
+          <pre class="code">Get-Process | Get-Member</pre>
+          <p class="muted" style="font-size:13px">"这个对象身上都有什么属性、什么方法？"——对象管道的"透视镜"，看一眼就知道 .CPU、.Id 都能点。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 毕业任务 ============ -->
+  <section class="section">
+    <h2>🎓 毕业任务：写一个「一键体检.bat」</h2>
+    <div class="card">
+      <p>综合本课程全部知识，写一个脚本：双击运行，自动收集系统信息、网络配置、进程清单，汇总成一份体检报告。参考骨架（每一行你都已经学过了）：</p>
+      <pre class="code">@echo off
+cd /d %USERPROFILE%\Desktop
+echo === 命令行学院体检报告 %DATE% %TIME% === > 体检报告.txt
+systeminfo >> 体检报告.txt
+ipconfig /all >> 体检报告.txt
+tasklist >> 体检报告.txt
+echo 体检完成！报告已保存到 %CD%\体检报告.txt & pause</pre>
+      <p class="muted" style="font-size:13.5px">挑战升级：① 把它用 schtasks 建成每天自动跑的计划任务（阶段⑤）；② 把 systeminfo 换成 robocopy 给重要文件夹做备份（阶段②）；③ 用 PowerShell 重写一遍（今天的对象管道）。</p>
+      <div class="callout ok"><b>🎓 恭喜毕业！</b>你能打开终端、管理文件、加工文本、诊断网络、管理系统、编写脚本——这条从"黑窗口恐惧症"到"自动化自由"的路，你已经走完了。右上的「⌨ 速查表」是你的随身兵器谱，忘了就回来翻。真正的精进从现在开始：把真电脑上的重复操作，逐个变成脚本。</div>
+    </div>
+  </section>
+
+  <!-- ============ 打卡清单 ============ -->
+  <section class="section">
+    <h2>知识点打卡清单 <span class="chip" data-stage-progress="6"></span></h2>
+    <div class="card check">
+      <label><input type="checkbox" id="s6-1" data-persist><span>理解 cmdlet 的"动词-名词"命名（Get-Process / Stop-Service），能靠规律猜命令</span></label>
+      <label><input type="checkbox" id="s6-2" data-persist><span>理解对象管道：| 里流动的是对象，<code class="inline">$_.CPU</code> 点属性就能用，不用切文本</span></label>
+      <label><input type="checkbox" id="s6-3" data-persist><span>掌握常用对照：dir→Get-ChildItem、tasklist→Get-Process、taskkill→Stop-Process、type→Get-Content、findstr→Select-String；并知道 PowerShell 里 <code class="inline">sc</code> 是个坑（它是 Set-Content 的别名，要用 sc.exe）</span></label>
+      <label><input type="checkbox" id="s6-4" data-persist><span>会用对象管道三件套：<code class="inline">Where-Object</code> 过滤、<code class="inline">Sort-Object</code> 排序、<code class="inline">Select-Object -First n</code> 截取</span></label>
+      <label><input type="checkbox" id="s6-5" data-persist><span>能读懂并改写 .bat：@echo off、set 变量、if exist / if %errorlevel% LEQ 7、pause 各是干嘛的</span></label>
+      <label><input type="checkbox" id="s6-6" data-persist><span>知道 .ps1 要设执行策略（<code class="inline">Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code>），会用 Get-Help / Get-Command / Get-Member 三板斧自学</span></label>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="grid g2">
+      <div class="card">
+        <h3>🎯 本阶段动手任务（回到你的真电脑）</h3>
+        <p>1. 在 PowerShell 里跑 <code class="inline">Get-Process | Sort-Object CPU -Descending | Select-Object -First 5</code>，和任务管理器对答案；<br>
+           2. 把互动 3 的 backup.bat 存成真文件，把源目录改成你的照片目录跑一遍；<br>
+           3. 跑 <code class="inline">Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code>，然后写个 hello.ps1 输出 <code class="inline">Get-Date</code>；<br>
+           4. 试 <code class="inline">Get-Process | Get-Member</code>，数数一个进程对象有多少属性；<br>
+           5. 完成毕业任务「一键体检.bat」，把报告发给自己。</p>
+      </div>
+      <div class="card">
+        <h3>📚 资源</h3>
+        <p>• <a href="https://learn.microsoft.com/zh-cn/powershell/module/microsoft.powershell.core/about/about_pipelines" target="_blank" rel="noopener">微软官方 · about_Pipelines（对象管道原理）</a><br>
+           • <a href="https://learn.microsoft.com/zh-cn/powershell/scripting/learn/ps101/00-introduction" target="_blank" rel="noopener">微软官方 · PowerShell 101 入门教程</a><br>
+           • <a href="https://ss64.com/ps/" target="_blank" rel="noopener">SS64 · PowerShell 命令参考</a><br>
+           • <a href="https://search.bilibili.com/all?keyword=PowerShell%20%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B" target="_blank" rel="noopener">B站 · 搜「PowerShell 入门教程」视频</a></p>
+        <div class="callout ok"><b>通关标准：</b>完成毕业任务「一键体检.bat」并成功运行；能用一句话向朋友解释"PowerShell 的管道里流的是对象而不是文本，这意味着什么"。达到即毕业。</div>
+      </div>
+    </div>
+  </section>
+
+  <p style="margin-top:30px">
+    <a class="btn" href="stage5.html">← 上一阶段：系统管理</a>
+    <a class="btn" href="index.html">课程总览</a>
+    <a class="btn primary" href="cheatsheet.html">终极速查表 →</a>
+  </p>
+</main>
+
+<footer class="foot">阶段 ⑥ · PowerShell 与脚本 · 命令行学院</footer>
+<script src="assets/app.js"></script>
+<script>
+/* ============ 共享：进程对象 ============ */
+var PROCS6 = [
+  { n: 'chrome', cpu: 312, m: '512MB' },
+  { n: 'code', cpu: 288, m: '768MB' },
+  { n: 'node', cpu: 156, m: '256MB' },
+  { n: 'steam', cpu: 132, m: '410MB' },
+  { n: 'WeChat', cpu: 88, m: '380MB' },
+  { n: 'notepad', cpu: 12, m: '12MB' },
+  { n: 'explorer', cpu: 3, m: '82MB' },
+  { n: 'System', cpu: 0.1, m: '0.1MB' }
+];
+
+/* ============ 互动1：CMD↔PowerShell 对照转换器 ============ */
+(function () {
+  var MAP = [
+    { c: 'dir', p: 'Get-ChildItem', a: 'gci、ls、dir', n: 'dir 本身也是可用别名。-Recurse 递归子目录，-Force 显示隐藏——对应 dir /s 和 /a。' },
+    { c: 'cd', p: 'Set-Location', a: 'sl、cd', n: 'cd 别名保留。福利：跨盘符直接 cd D:\备份 即可，不需要 CMD 那个反人类的 /d。' },
+    { c: 'cls', p: 'Clear-Host', a: 'cls、clear', n: 'cls 直接能用。' },
+    { c: 'copy', p: 'Copy-Item', a: 'cpi、cp、copy', n: '复制目录要加 -Recurse（相当于 robocopy /E 的丐版）。重活还是请阶段②的 robocopy 出山。' },
+    { c: 'move', p: 'Move-Item', a: 'mi、mv、move', n: 'move 别名可用。跨盘移动文件 = 移动 + 免复制两遍。' },
+    { c: 'del', p: 'Remove-Item', a: 'ri、rm、del、erase', n: 'del/rm 都是别名。删非空目录：Remove-Item 目录 -Recurse。注意：一样不进回收站！' },
+    { c: 'type', p: 'Get-Content', a: 'gc、cat、type', n: 'cat 都来了——类 Unix 习惯无缝迁移。-Tail 10 看文件最后 10 行，看日志神器。' },
+    { c: 'echo', p: 'Write-Output', a: 'echo、write', n: 'echo 别名可用。注意：PS 里 > 重定向默认是 UTF-16 编码，记事本打开可能显示异常，可接 | Out-File -Encoding utf8 处理。' },
+    { c: 'findstr', p: 'Select-String', a: 'sls', n: '真·正则引擎（findstr 的正则是不完整版）。Select-String "ERROR" log.txt 直接给行号和文件名。' },
+    { c: 'tasklist', p: 'Get-Process', a: 'gps、ps', n: '输出是进程对象！Get-Process | Sort-Object CPU -Descending | Select-Object -First 3 —— tasklist 梦寐以求的 CPU 排序，一句话搞定。' },
+    { c: 'taskkill', p: 'Stop-Process', a: 'spps、kill', n: 'Stop-Process -Id 4520 -Force（-Force 相当于 /F），或 -Name chrome.exe。它杀 GUI 进程也是直接走，没有"礼貌模式"。' },
+    { c: 'sc', p: 'Get-Service / Stop-Service / Start-Service', a: 'gv? 不是——Get-Service 没有短别名', n: '⚠ 大坑：在 PowerShell 里 sc 是 Set-Content 的别名！sc query 会变成"写文件"！必须写全 sc.exe query。管理服务请用 Get-Service Spooler、Restart-Service。' },
+    { c: 'ipconfig', p: 'Get-NetIPAddress / Get-NetIPConfiguration', a: '（ipconfig 原样可用）', n: 'ipconfig 是外部 exe，两个 shell 都直接跑。要对象化再学 Get-NetIPConfiguration——网关、DNS 直接是属性。' }
+  ];
+  var btns = document.getElementById('cc-btns');
+  var detail = document.getElementById('cc-detail');
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  btns.innerHTML = MAP.map(function (m, i) {
+    return '<button class="opt" type="button" data-m="' + i + '"><code class="inline">' + esc(m.c) + '</code></button>';
+  }).join('');
+  function pick(i) {
+    var m = MAP[i];
+    btns.querySelectorAll('.opt').forEach(function (x, xi) { x.classList.toggle('correct', xi === i); });
+    detail.innerHTML =
+      '<div class="plrow" style="margin:6px 0">' +
+      '<div class="plstage on">CMD：' + esc(m.c) + '</div><span class="plarrow">→</span>' +
+      '<div class="plstage on">PowerShell：' + esc(m.p) + '</div></div>' +
+      '<p><b>短别名：</b><code class="inline">' + esc(m.a) + '</code></p>' +
+      '<p>' + m.n + '</p>';
+  }
+  btns.addEventListener('click', function (e) {
+    var b = e.target.closest('.opt');
+    if (b) pick(+b.dataset.m);
+  });
+  pick(0);
+})();
+
+/* ============ 互动2：对象管道实验室 ============ */
+(function () {
+  var cW = document.getElementById('lbw');
+  var cS = document.getElementById('lbs');
+  var cF = document.getElementById('lbf');
+  var stW = document.getElementById('lb-w');
+  var stS = document.getElementById('lb-s');
+  var stF = document.getElementById('lb-f');
+  var objs = document.getElementById('lb-objs');
+  var out = document.getElementById('lb-out');
+  var exp = document.getElementById('lb-exp');
+
+  function render() {
+    stW.classList.toggle('on', cW.checked);
+    stS.classList.toggle('on', cS.checked);
+    stF.classList.toggle('on', cF.checked);
+    stW.querySelector('.lb').textContent = cW.checked ? '✓ 已接入' : '勾选启用';
+    stS.querySelector('.lb').textContent = cS.checked ? '✓ 已接入' : '勾选启用';
+    stF.querySelector('.lb').textContent = cF.checked ? '✓ 已接入' : '勾选启用';
+
+    var list = PROCS6.slice();
+    if (cW.checked) list = list.filter(function (p) { return p.cpu > 100; });
+    if (cS.checked) list = list.slice().sort(function (a, b) { return b.cpu - a.cpu; });
+    var rest = [];
+    if (cF.checked && list.length > 3) { rest = list.slice(3); list = list.slice(0, 3); }
+
+    objs.innerHTML = '<div style="font-family:Consolas,monospace;font-size:12.5px;color:#94a3b8;margin-bottom:6px">进程对象（发光=入选 · 灰=被淘汰）：</div>' +
+      list.map(function (p) {
+        return '<span class="objcard on"><span class="oname">' + p.n + '</span> <span class="prop">CPU ' + p.cpu + '% · ' + p.m + '</span></span>';
+      }).join('') +
+      rest.map(function (p) {
+        return '<span class="objcard drop"><span class="oname">' + p.n + '</span> <span class="prop">CPU ' + p.cpu + '% · ' + p.m + '</span></span>';
+      }).join('') +
+      (cW.checked ? PROCS6.filter(function (p) { return p.cpu <= 100; }).map(function (p) {
+        return '<span class="objcard drop"><span class="oname">' + p.n + '</span> <span class="prop">CPU ' + p.cpu + '% · ' + p.m + '</span></span>';
+      }).join('') : '');
+
+    var cmd = 'Get-Process';
+    if (cW.checked) cmd += ' | Where-Object {$_.CPU -gt 100}';
+    if (cS.checked) cmd += ' | Sort-Object CPU -Descending';
+    if (cF.checked) cmd += ' | Select-Object -First 3';
+    out.innerHTML = '<span class="pr">PS C:\\&gt;</span> ' + cmd.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+      '\n\n NPM(K)   PM(M)  CPU(s)   Id ProcessName\n ------   -----  ------   -- -----------\n' +
+      list.map(function (p) {
+        var npm = String(Math.round(p.cpu * 0.67)).padStart(7);
+        var pm = p.m.replace('MB', '').padStart(7);
+        var cpu = p.cpu.toFixed(2).padStart(8);
+        var id = String(1000 + PROCS6.indexOf(p) * 137).padStart(5);
+        return npm + pm + cpu + id + ' ' + p.n;
+      }).join('\n') +
+      (cF.checked ? '\n\n<span class="cm">（Select-Object -First 3 已把第 4 名以后截掉——上面的灰色卡片就是被截掉的）</span>' : '');
+
+    var tips = [];
+    if (!cW.checked && !cS.checked && !cF.checked) tips.push('这是 Get-Process 的裸输出：8 个对象原样流出来，顺序是系统给的。');
+    if (cW.checked) tips.push('<b>Where-Object {$_.CPU -gt 100}</b>：$_ 是"流过来的当前对象"，.CPU 点属性，-gt 大于。CPU≤100 的四个对象（微信/记事本/explorer/System）被筛掉。');
+    if (cS.checked) tips.push('<b>Sort-Object CPU -Descending</b>：按 CPU 属性降序。对象排序不用切列转数字——属性天生就是数据。');
+    if (cF.checked) tips.push('<b>Select-Object -First 3</b>：只要前三个，其余被截在管道外。');
+    tips.push('最后输出的表格是 PowerShell <b>默认格式化</b>（背后是 Format-Table 自动接力）——你写命令时完全不用管排版，只管管好数据。');
+    exp.innerHTML = tips.join('<br>');
+  }
+  [cW, cS, cF].forEach(function (c) { c.addEventListener('change', render); });
+  render();
+})();
+
+/* ============ 互动3：批处理逐行精讲 ============ */
+(function () {
+  var LINES = [
+    '@echo off',
+    'set SRC=%USERPROFILE%\\Pictures',
+    'set DST=D:\\照片备份',
+    'if not exist "%DST%" mkdir "%DST%"',
+    'robocopy "%SRC%" "%DST%" /MIR /R:2 /W:3',
+    'if %errorlevel% LEQ 7 (echo 备份成功) else (echo 备份失败，退出码 %errorlevel%)',
+    'pause'
+  ];
+  var TIPS = [
+    '<b>@echo off —— 关掉"命令回显"。</b>默认情况下批处理每执行一条命令，都会先把自己打印一遍；echo off 关掉这个行为，@ 让"这一行自己"也不显示。脚本清爽的关键。加 @ 只静音一行，echo off 静音之后所有行。',
+    '<b>set SRC=… —— 定义变量。</b>set 变量名=值（等号两边别加空格），用的时候 %变量名% 取值。%USERPROFILE% 是阶段⑤学的环境变量=用户家目录。变量让脚本"一处改、处处生效"。',
+    '<b>set DST=… —— 备份目标。</b> 放 D 盘。想让脚本更通用？可以改成 set DST=%1——%1 是"运行脚本时带的第一个参数"，backup.bat E:\盘 就能备份到任何地方。',
+    '<b>if not exist … mkdir… —— 不存在就创建。</b>exist 判断文件/目录是否存在，配 if 做防御性编程：目标目录还没建？先建好，后面 robocopy 就不会报错。这是脚本可靠性的基本功。',
+    '<b>robocopy /MIR /R:2 /W:3 —— 主力干将。</b>阶段②讲的镜像备份：源有什么目标就有什么；重试 2 次、间隔 3 秒，防止网络备份卡死。脚本 = 把你手敲的命令固化下来，哪天手动敲的命令值得敲第二遍，就该进脚本了。',
+    '<b>if %errorlevel% LEQ 7 —— 检查成败。</b>%errorlevel% 是上一条命令的退出码（阶段①动画里讲过）。注意：robocopy 的 0~7 都算成功（1=复制了文件，2=发现多余文件…），所以判断 LEQ 7 而不是 == 0——这是 robocopy 特有的坑，判断错了会把"成功"报成"失败"。',
+    '<b>pause —— 停住窗口。</b>显示"请按任意键继续. . ."。不写它，双击运行时窗口一闪就关，你根本看不到结果。调试脚本时它和 echo 是黄金搭档。'
+  ];
+  var RUNOUT = [
+    ['（双击 backup.bat……@echo off 让命令本身不再回显，直接看到干活）', 'cm'],
+    ['', ''],
+    ['-------------------------------------', ''],
+    ['          总数      复制     跳过', ''],
+    ['文件夹:      3        1         2', ''],
+    ['文件:       24        5        19', ''],
+    ['字节:   312.4 m   45.2 m  267.2 m', ''],
+    ['-------------------------------------', ''],
+    ['备份成功', 'ok'],
+    ['请按任意键继续. . .', 'cm']
+  ];
+  var box = document.getElementById('bat-lines');
+  var title = document.getElementById('bat-title');
+  var desc = document.getElementById('bat-desc');
+  var term = document.getElementById('bat-out');
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  box.innerHTML = LINES.map(function (l, i) {
+    return '<div class="ln" data-i="' + i + '" style="cursor:pointer"><span class="pr">' + String(i + 1).padStart(2) + '</span>  ' + esc(l) + '</div>';
+  }).join('');
+  box.addEventListener('click', function (e) {
+    var t = e.target.closest('.ln');
+    if (!t) return;
+    box.querySelectorAll('.ln').forEach(function (x) { x.classList.toggle('on', x === t); });
+    var i = +t.dataset.i;
+    title.textContent = '第 ' + (i + 1) + ' 行：' + LINES[i];
+    desc.innerHTML = TIPS[i];
+  });
+  var timers = [];
+  document.getElementById('bat-run').addEventListener('click', function () {
+    timers.forEach(clearTimeout);
+    term.innerHTML = '';
+    RUNOUT.forEach(function (r, i) {
+      timers.push(setTimeout(function () {
+        var d = document.createElement('div');
+        d.innerHTML = r[0] ? '<span' + (r[1] ? ' class="' + r[1] + '"' : '') + '>' + esc(r[0]) + '</span>' : '&nbsp;';
+        term.appendChild(d);
+        term.scrollTop = term.scrollHeight;
+      }, i * 420));
+    });
+  });
+  document.getElementById('bat-clear').addEventListener('click', function () {
+    timers.forEach(clearTimeout);
+    term.innerHTML = '';
+  });
+  box.querySelectorAll('.ln')[4].classList.add('on');
+  title.textContent = '第 5 行：' + LINES[4];
+  desc.innerHTML = TIPS[4];
+})();
+</script>
+</body>
+</html>

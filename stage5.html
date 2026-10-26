@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段⑤ 系统管理 —— 电脑听你的 · 命令行学院</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="bar">
+    <span class="brand"><span class="logo">&gt;_</span>命令行学院</span>
+    <nav class="nav">
+      <a href="index.html">课程总览</a>
+      <a href="stage1.html">① 终端入门</a>
+      <a href="stage2.html">② 文件与目录</a>
+      <a href="stage3.html">③ 文本与管道</a>
+      <a href="stage4.html">④ 网络诊断</a>
+      <a href="stage5.html">⑤ 系统管理</a>
+      <a href="stage6.html">⑥ PowerShell 与脚本</a>
+      <a href="cheatsheet.html">⌨ 速查表</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" style="padding:30px 32px">
+    <span class="tag">阶段 ⑤ · 预计 1~2 天</span>
+    <h1 style="font-size:24px">系统管理 —— 电脑听你的</h1>
+    <p class="lead">阶段目标：进程想杀就杀（但知道什么不能杀）、定时任务会建、环境变量和 PATH 玩得转、装软件一条命令搞定。</p>
+    <div class="pwrap">
+      <div class="progress"><div class="fill" data-progress-bar="5"></div></div>
+      <span class="plabel" data-progress-label="5"></span>
+    </div>
+  </section>
+
+  <!-- ============ 互动1：进程管理模拟器 ============ -->
+  <section class="section">
+    <h2>互动 1 · 进程管理模拟器<span class="chip" data-stage-progress="5"></span></h2>
+    <p class="muted">下面是一台"虚拟电脑"的进程表（<b>点击任意行</b>可选中它）。点右边按钮执行真实命令，观察进程表的生死变化。放心折腾，这台电脑是假的。</p>
+    <div class="lab-grid">
+      <div class="card">
+        <h3>🖥 进程表（tasklist 视角）</h3>
+        <div style="background:#0c121f;border-radius:10px;padding:6px 10px;overflow-x:auto">
+          <table class="ptable" id="pm-table">
+            <thead><tr><th>映像名</th><th>PID</th><th>内存</th><th>它是什么</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button class="btn" type="button" id="pm-reset" style="margin-top:10px">⟲ 重置虚拟电脑</button>
+      </div>
+      <div class="card">
+        <h3>⌨ 命令按钮</h3>
+        <div class="opts" id="pm-btns"></div>
+        <div class="term" style="margin-top:10px">
+          <div class="term-bar">
+            <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+            <span class="ttitle">进程管理 · 模拟终端</span>
+          </div>
+          <div class="term-body" id="pm-out"></div>
+        </div>
+        <div class="explain" id="pm-exp">👆 点一个命令，或点左边进程表的任意一行。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 互动2：系统体检命令选择器 ============ -->
+  <section class="section">
+    <h2>互动 2 · 系统体检命令选择器</h2>
+    <p class="muted">六条"给电脑做体检"的命令，点一个看输出长什么样、什么时候该用它。带 <span class="chip" style="background:#fee2e2;color:#991b1b">需管理员</span> 标记的要用管理员终端跑。</p>
+    <div class="card">
+      <div class="opts" id="hc-btns"></div>
+      <div class="term">
+        <div class="term-bar">
+          <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+          <span class="ttitle" id="hc-cmd">C:\Users\you&gt;</span>
+        </div>
+        <div class="term-body" id="hc-out"></div>
+      </div>
+      <div class="explain" id="hc-exp"></div>
+    </div>
+  </section>
+
+  <!-- ============ 互动3：环境变量与 PATH 实验室 ============ -->
+  <section class="section">
+    <h2>互动 3 · 环境变量与 PATH 实验室（"找不到命令"的真相）</h2>
+    <p class="muted">回忆阶段①的动画：系统按 <b>PATH 环境变量</b>里的目录逐个找程序。<b>PATH 里没有的目录，里面的程序就"找不到"</b>——哪怕它明明在硬盘上。下面亲手复现一次这个事故并修好它。</p>
+    <div class="card">
+      <h3>当前 PATH 里的目录</h3>
+      <div id="pv-chips" style="margin:6px 0 12px"></div>
+      <div class="opts" id="pv-btns"></div>
+      <div class="term" style="margin-top:10px">
+        <div class="term-bar">
+          <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+          <span class="ttitle">PATH 实验室 · 模拟终端</span>
+        </div>
+        <div class="term-body" id="pv-out"></div>
+      </div>
+      <div class="explain" id="pv-exp">故事线：你把工具装进了 C:\tools，但在任何地方输 tool 都"找不到"——因为 C:\tools 不在 PATH 里。按顺序点上面的按钮修好它。</div>
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card">
+        <h3>⚖ set vs setx</h3>
+        <table class="tbl">
+          <thead><tr><th></th><th><code class="inline">set</code></th><th><code class="inline">setx</code></th></tr></thead>
+          <tbody>
+            <tr><td>作用范围</td><td>仅当前终端窗口（临时）</td><td>永久（写进注册表）</td></tr>
+            <tr><td>立即生效？</td><td>✅ 是</td><td>❌ 已开着的窗口看不到，<b>重开才生效</b></td></tr>
+            <tr><td>怎么读</td><td colspan="2"><code class="inline">set 变量名</code> 或 <code class="inline">echo %变量名%</code></td></tr>
+            <tr><td>典型用途</td><td>调试、脚本内临时值</td><td>装完工具往 PATH 加目录</td></tr>
+            <tr><td>坑</td><td>关窗口就没</td><td>setx PATH 会把系统+用户 PATH 合并塞进用户变量，超长被截断——改 PATH 更稳的是系统设置图形界面</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>📦 常用环境变量</h3>
+        <table class="tbl">
+          <thead><tr><th>变量</th><th>指向</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">%USERPROFILE%</code></td><td>C:\Users\你（你的家目录）</td></tr>
+            <tr><td><code class="inline">%APPDATA%</code></td><td>软件配置存放地（漫游配置）</td></tr>
+            <tr><td><code class="inline">%LOCALAPPDATA%</code></td><td>软件缓存/本机数据</td></tr>
+            <tr><td><code class="inline">%TEMP%</code></td><td>临时文件目录，清理对象</td></tr>
+            <tr><td><code class="inline">%COMPUTERNAME%</code></td><td>电脑名</td></tr>
+            <tr><td><code class="inline">%DATE% / %TIME%</code></td><td>当前日期 / 时间（脚本里打日志用）</td></tr>
+            <tr><td><code class="inline">%CD%</code></td><td>当前所在目录</td></tr>
+          </tbody>
+        </table>
+        <p class="muted" style="font-size:13px">用法：<code class="inline">cd %USERPROFILE%\Desktop</code> 一秒回桌面；脚本里 <code class="inline">echo 备份完成于 %DATE% %TIME% >> log.txt</code>。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 互动4：schtasks 逐段精讲 ============ -->
+  <section class="section">
+    <h2>互动 4 · 计划任务 schtasks：让命令半夜自己跑</h2>
+    <p class="muted">想让电脑每天 23:30 自动清理垃圾？<code class="inline">schtasks</code> 一条命令搞定。<b>点击命令的任意一段</b>，看每块积木是干嘛的。</p>
+    <div class="lab-grid">
+      <div class="anat-box" id="sc-src"></div>
+      <div class="card">
+        <h3 id="sc-title" style="color:var(--brand)">👆 点左边任意一段</h3>
+        <p id="sc-desc">计划任务三要素：<b>干什么（/TR）、什么时候（/SC + /ST）、叫什么名（/TN）</b>。</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>🔁 建好之后的三板斧</h3>
+      <pre class="code">schtasks /Query  /TN "夜间清理"        <span class="cm">&amp;:: 查看任务状态（加 /V 看详情）</span>
+schtasks /Run    /TN "夜间清理"        <span class="cm">&amp;:: 立即手动跑一次（测试用）</span>
+schtasks /Delete /TN "夜间清理" /F     <span class="cm">&amp;:: 不要了，删掉（/F 免确认）</span></pre>
+      <h3 style="margin-top:14px">⚙ 服务管理：sc 与 services.msc</h3>
+      <table class="tbl">
+        <thead><tr><th>命令</th><th>作用</th><th>例子</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">sc query</code></td><td>查服务状态（RUNNING / STOPPED）</td><td><code class="inline">sc query Spooler</code>（打印服务）</td></tr>
+          <tr><td><code class="inline">sc stop / sc start</code></td><td>停 / 启服务</td><td>打印机抽风？<code class="inline">sc stop Spooler</code> 再 start</td></tr>
+          <tr><td><code class="inline">sc config</code></td><td>改启动类型</td><td><code class="inline">sc config Spooler start= disabled</code>（注意 start= 后有空格）</td></tr>
+          <tr><td>GUI 对照</td><td colspan="2"><code class="inline">services.msc</code> 打开服务管理器，sc 的所有操作它都能点出来（sc 需管理员）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 互动5：winget ============ -->
+  <section class="section">
+    <h2>互动 5 · winget：装软件的命令行时代</h2>
+    <p class="muted">Win10/11 自带的官方包管理器。<b>告别"百度下载站 + 全家桶捆绑"</b>，一条命令直达官方安装源。点按钮看每种姿势的输出。</p>
+    <div class="card">
+      <div class="opts" id="wg-btns"></div>
+      <div class="term">
+        <div class="term-bar">
+          <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+          <span class="ttitle" id="wg-cmd">C:\Users\you&gt;</span>
+        </div>
+        <div class="term-body" id="wg-out"></div>
+      </div>
+      <div class="explain" id="wg-exp"></div>
+      <h3 style="margin-top:14px">🚀 新装机一条龙（复制就能用）</h3>
+      <pre class="code">winget install Python.Python.3.12
+winget install Git.Git
+winget install Microsoft.VisualStudioCode
+winget install Notepad++.Notepad++
+winget upgrade --all          <span class="cm">&amp;:: 一键把所有软件升到最新</span></pre>
+    </div>
+  </section>
+
+  <!-- ============ 管理员权限 ============ -->
+  <section class="section">
+    <h2>🔑 管理员权限：哪些命令要"提档"？</h2>
+    <div class="card">
+      <table class="tbl">
+        <thead><tr><th>需要管理员的命令</th><th>为什么</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">sfc /scannow</code></td><td>修复系统文件，动的是 Windows 自身</td></tr>
+          <tr><td><code class="inline">chkdsk C: /f</code></td><td>修磁盘错误（系统盘还要安排重启时修）</td></tr>
+          <tr><td><code class="inline">net user 用户名 密码</code></td><td>增删改用户、改密码</td></tr>
+          <tr><td><code class="inline">sc stop / sc config</code></td><td>服务是系统级资产</td></tr>
+          <tr><td><code class="inline">netsh winsock reset</code></td><td>重置网络组件（阶段④的处方）</td></tr>
+        </tbody>
+      </table>
+      <div class="callout info"><b>怎么开管理员终端：</b>右键开始按钮（或 Win+X）→ 选「终端(管理员)」/「Windows PowerShell(管理员)」→ UAC 弹窗点「是」。标题栏会带"管理员"字样。普通终端跑需要提权的命令，会报"拒绝访问"——先想到这一层。</div>
+      <div class="callout warn"><b>☠ 红线警示（管理员终端里手别抖）：</b><code class="inline">C:\Windows\System32</code> 是系统命脉，删它=重装系统；<code class="inline">format</code> 是整盘格式化；网上抄的命令里有 <code class="inline">del C:\ /s /q</code> 这种字样的，<b>直接关页面跑路</b>——那是毁灭性命令。</div>
+    </div>
+  </section>
+
+  <!-- ============ 打卡清单 ============ -->
+  <section class="section">
+    <h2>知识点打卡清单 <span class="chip" data-stage-progress="5"></span></h2>
+    <div class="card check">
+      <label><input type="checkbox" id="s5-1" data-persist><span>会用 tasklist 查进程、taskkill 杀进程，说清 /IM（按名）/ /PID（按号）/ /F（强制）的区别</span></label>
+      <label><input type="checkbox" id="s5-2" data-persist><span>会跑"端口 → PID → 进程"联动排查（结合阶段④的 netstat -ano）</span></label>
+      <label><input type="checkbox" id="s5-3" data-persist><span>分得清 set（临时）和 setx（永久），会往 PATH 加目录，知道要<b>重开终端才生效</b></span></label>
+      <label><input type="checkbox" id="s5-4" data-persist><span>会用 schtasks 建每日定时任务（/TN /TR /SC /ST），会查、会删、会手动触发</span></label>
+      <label><input type="checkbox" id="s5-5" data-persist><span>会用 sc query/stop/start 或 services.msc 查看和管理服务</span></label>
+      <label><input type="checkbox" id="s5-6" data-persist><span>会用 winget 搜/装/升级软件；跑过 systeminfo 或 sfc 给电脑做体检；知道哪些命令要管理员终端</span></label>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="grid g2">
+      <div class="card">
+        <h3>🎯 本阶段动手任务（回到你的真电脑）</h3>
+        <p>1. 打开记事本，tasklist 找到它的 PID，taskkill /PID 杀掉（安全练手对象）；<br>
+           2. 用 <code class="inline">netstat -ano | findstr :端口</code> 完整走一遍"端口追凶"（结合阶段④）；<br>
+           3. <code class="inline">echo %PATH%</code> 看看你的 PATH，再 <code class="inline">where notepad</code> 验证它在哪个目录；<br>
+           4. 建一个真计划任务：每天 12:00 弹个提醒（/TR "msg * 该喝水了"），再用 /Run 触发一次、/Delete 删掉；<br>
+           5. winget install 装一个你想要的软件，体验命令行装机；<br>
+           6. 管理员终端跑 <code class="inline">systeminfo > 桌面体检报告.txt</code>。</p>
+      </div>
+      <div class="card">
+        <h3>📚 资源</h3>
+        <p>• <a href="https://learn.microsoft.com/zh-cn/windows-server/administration/windows-commands/schtasks" target="_blank" rel="noopener">微软官方 · schtasks 文档</a><br>
+           • <a href="https://learn.microsoft.com/zh-cn/windows-server/administration/windows-commands/sc-config" target="_blank" rel="noopener">微软官方 · sc config 文档</a><br>
+           • <a href="https://learn.microsoft.com/zh-cn/windows/package-manager/winget/" target="_blank" rel="noopener">微软官方 · winget 使用指南</a><br>
+           • <a href="https://learn.microsoft.com/zh-cn/windows-server/administration/windows-commands/windows-commands" target="_blank" rel="noopener">微软官方 · Windows 命令 A-Z</a></p>
+        <div class="callout ok"><b>通关标准：</b>朋友电脑"卡得要死"找你：你会用 tasklist 按内存排序找吃资源的进程并安全处置；能说清"为什么杀 svchost.exe 会出大事"；能用 schtasks 给他建个自动备份任务。</div>
+      </div>
+    </div>
+  </section>
+
+  <p style="margin-top:30px">
+    <a class="btn" href="stage4.html">← 上一阶段：网络诊断</a>
+    <a class="btn" href="index.html">课程总览</a>
+    <a class="btn primary" href="stage6.html">下一阶段：PowerShell 与脚本 →</a>
+  </p>
+</main>
+
+<footer class="foot">阶段 ⑤ · 系统管理 · 命令行学院</footer>
+<script src="assets/app.js"></script>
+<script>
+/* ============ 互动1：进程管理模拟器 ============ */
+(function () {
+  var PROCS = [
+    { name: 'System', pid: 4, mem: '144 K', what: '系统内核', danger: 2 },
+    { name: 'explorer.exe', pid: 1204, mem: '82,944 K', what: '桌面和任务栏', danger: 1 },
+    { name: 'chrome.exe', pid: 3120, mem: '512,000 K', what: '浏览器', danger: 0 },
+    { name: 'test-server.exe', pid: 4520, mem: '156,248 K', what: '你的测试服务', danger: 0 },
+    { name: 'WeChat.exe', pid: 5108, mem: '380,928 K', what: '微信', danger: 0 },
+    { name: 'notepad.exe', pid: 6644, mem: '12,288 K', what: '记事本', danger: 0 }
+  ];
+  var tbody = document.querySelector('#pm-table tbody');
+  var btns = document.getElementById('pm-btns');
+  var out = document.getElementById('pm-out');
+  var exp = document.getElementById('pm-exp');
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function alive(p) { return !p.dead; }
+
+  function renderTable() {
+    tbody.innerHTML = PROCS.map(function (p, i) {
+      return '<tr data-i="' + i + '" class="' + (p.dead ? 'dead' : '') + (p.pick ? ' pick' : '') + '">' +
+        '<td>' + p.name + '</td><td>' + p.pid + '</td><td>' + p.mem + '</td><td style="font-family:inherit">' + p.what + '</td></tr>';
+    }).join('');
+  }
+  function log(html) {
+    var d = document.createElement('div');
+    d.innerHTML = html;
+    out.appendChild(d);
+    out.scrollTop = out.scrollHeight;
+  }
+  function logLine(t, cls) { log('<span' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(t) + '</span>'); }
+  function logCmd(cmd) { log('<span class="pr">C:\\Users\\you&gt;</span> ' + esc(cmd)); }
+  function setExp(html, cls) {
+    exp.className = 'explain' + (cls ? ' ' + cls : '');
+    exp.innerHTML = html;
+  }
+
+  var CMDS = [
+    { label: 'tasklist', cmd: 'tasklist', run: function () {
+      logCmd('tasklist');
+      logLine('映像名                     PID 会话名        会话#       内存使用 ');
+      logLine('========================= ======== ================ =========== ============');
+      PROCS.forEach(function (p) { if (alive(p)) logLine(p.name.padEnd(26) + String(p.pid).padEnd(9) + 'Console                    1   ' + p.mem); });
+      log('');
+      setExp('<b>tasklist</b> 列出所有活着的进程。四列关键信息：<b>映像名</b>（程序文件名）、<b>PID</b>（进程号，系统给每个进程发的唯一号码牌）、<b>内存</b>（吃多少）。想按内存排序找大户？<code class="inline">tasklist /FI "memusage gt 200000"</code> 或者干脆开任务管理器。');
+    }},
+    { label: 'tasklist | findstr "test"', cmd: 'tasklist | findstr "test"', run: function () {
+      logCmd('tasklist | findstr "test"');
+      var hit = PROCS.filter(function (p) { return alive(p) && p.name.toLowerCase().indexOf('test') >= 0; });
+      hit.forEach(function (p) { log('<span class="hl">' + esc(p.name.padEnd(26) + String(p.pid).padEnd(9) + 'Console                    1   ' + p.mem) + '</span>'); });
+      if (!hit.length) logLine('（没有叫 test 的活进程了——刚才被你杀了。）', 'cm');
+      log('');
+      setExp('阶段③的管道在这里实战：<b>tasklist 的输出直接流进 findstr 过滤</b>，几千行秒变一行。找到目标行后，<b>最后一眼确认进程名和 PID</b>，再决定杀不杀——这是纪律。');
+    }},
+    { label: 'taskkill /IM notepad.exe /F', cmd: 'taskkill /IM notepad.exe /F', run: function () {
+      var p = PROCS.find(function (x) { return x.name === 'notepad.exe'; });
+      logCmd('taskkill /IM notepad.exe /F');
+      if (!alive(p)) { logLine('错误: 没有找到进程 "notepad.exe"。', 'err'); log(''); setExp('真实报错：进程已经被终止过了（没有备份，重置才能复活）。', 'bad'); return; }
+      p.dead = 1;
+      renderTable();
+      logLine('成功: 已终止进程 "notepad.exe"，其 PID 为 6644。', 'ok');
+      log('');
+      setExp('<b>/IM</b>（Image Name）按名字杀：所有叫 notepad.exe 的进程一起没（多开全灭）。<b>/F</b> 强制：直接拔电源，不给"要不要保存"的机会。看左边进程表——记事本那一行已经划掉变灰。', 'good');
+    }},
+    { label: 'taskkill /PID 4520 /F', cmd: 'taskkill /PID 4520 /F', run: function () {
+      var p = PROCS.find(function (x) { return x.pid === 4520; });
+      logCmd('taskkill /PID 4520 /F');
+      if (!alive(p)) { logLine('错误: 没有找到进程 "4520"。', 'err'); log(''); setExp('真实报错：这个 PID 已经不在了。PID 是一次性的，进程死后号码作废。', 'bad'); return; }
+      p.dead = 1;
+      renderTable();
+      logLine('成功: 已终止 PID 为 4520 的进程。', 'ok');
+      log('');
+      setExp('<b>/PID</b> 按号码杀，比按名字更精准——像阶段④查端口占用那样：netstat -ano 查到 PID，一条 taskkill /PID xx /F 精准处决，不会误伤同名兄弟进程。', 'good');
+    }},
+    { label: 'taskkill /IM chrome.exe（不带 /F）', cmd: 'taskkill /IM chrome.exe', run: function () {
+      var p = PROCS.find(function (x) { return x.name === 'chrome.exe'; });
+      logCmd('taskkill /IM chrome.exe');
+      if (!alive(p)) { logLine('错误: 没有找到进程 "chrome.exe"。', 'err'); log(''); setExp('浏览器已经关了。', 'bad'); return; }
+      logLine('成功: 已给 PID 为 3120 的进程发送了终止信号。', 'ok');
+      log('');
+      setExp('<b>注意：没加 /F，只是"礼貌地敲门"</b>——进程收到了关闭请求，但它可以不理你（保存窗口弹出来问你的时候，它就还活着，看左边表：chrome 那行还在）。GUI 程序给面子会退；控制台程序直接回"只能 /F 硬来"（阶段④试过）。<b>程序装死时，才加 /F。</b>');
+    }}
+  ];
+
+  btns.innerHTML = CMDS.map(function (c, i) {
+    return '<button class="opt" type="button" data-c="' + i + '">' + esc(c.label) + '</button>';
+  }).join('');
+  btns.addEventListener('click', function (e) {
+    var b = e.target.closest('.opt');
+    if (!b) return;
+    CMDS[+b.dataset.c].run();
+  });
+  tbody.addEventListener('click', function (e) {
+    var tr = e.target.closest('tr');
+    if (!tr) return;
+    var p = PROCS[+tr.dataset.i];
+    PROCS.forEach(function (x) { x.pick = 0; });
+    p.pick = 1;
+    renderTable();
+    if (!alive(p)) { setExp('<b>' + p.name + '</b>（PID ' + p.pid + '）：已经是尸体了。重置可复活。', 'bad'); return; }
+    var tips = [
+      '🚫 <b>PID 4 是 System——系统内核本体</b>。杀它 = 立刻蓝屏。看到 System/svchost.exe/csrss.exe 这类名字，<b>手离键盘远点</b>。',
+      '⚠ explorer.exe 是桌面和任务栏。任务栏卡死时有个偏方：<code class="inline">taskkill /IM explorer.exe /F</code> 再 <code class="inline">start explorer.exe</code>——桌面会重启，窗口不丢。',
+      '💡 chrome.exe 是多进程浏览器，实际会有十几个 chrome.exe。<code class="inline">taskkill /IM chrome.exe /F</code> 会全灭。推荐命令：<code class="inline">taskkill /PID 3120 /F</code>',
+      '💡 自己写的测试服务（dev server 之类）：日常最常杀的对象，推荐：<code class="inline">taskkill /PID 4520 /F</code>',
+      '😅 WeChat.exe：杀它之前想清楚——未读消息的红点会消失（数据不会丢，别慌）。推荐：<code class="inline">taskkill /PID 5108 /F</code>',
+      '💡 notepad.exe：完美的练手靶子。推荐：<code class="inline">taskkill /IM notepad.exe /F</code>（或 /PID 6644）'
+    ];
+    setExp('<b>' + p.name + '</b>（PID ' + p.pid + '，' + p.what + '）<br>' + tips[p.danger === 2 ? 0 : PROCS.indexOf(p)]);
+  });
+  function reset() {
+    PROCS.forEach(function (p) { p.dead = 0; p.pick = 0; });
+    out.innerHTML = '<span class="cm">虚拟电脑已开机。点右边按钮执行命令，或点左边进程表选进程。</span>';
+    log('');
+    renderTable();
+    exp.className = 'explain';
+    exp.innerHTML = '👆 点一个命令，或点左边进程表的任意一行。';
+  }
+  document.getElementById('pm-reset').addEventListener('click', reset);
+  reset();
+})();
+
+/* ============ 互动2：系统体检命令选择器 ============ */
+(function () {
+  var H = [
+    { n: 'systeminfo', admin: 0, cmd: 'systeminfo',
+      out: ['主机名:                   DESKTOP-ABC123', 'OS 名称:                  Microsoft Windows 11 专业版', 'OS 版本:                  10.0.22631 暂缺 Build 22631', '系统类型:                 x64-based PC', '物理内存总量:             16,384 MB', '可用的物理内存:           7,912 MB', '……（真实输出还有网卡、补丁、启动时间等几十行）'],
+      exp: '<b>何时用：</b>接手一台陌生电脑、或在论坛求助前——先跑它，一屏看清系统版本、内存、补丁情况。<b>普通权限就能跑</b>。加管道更香：<code class="inline">systeminfo | findstr /C:"OS 名称" /C:"物理内存"</code>' },
+    { n: 'driverquery', admin: 0, cmd: 'driverquery',
+      out: ['模块名    显示名称           驱动程序类型   链接日期', '========  =================  ============  ==========', 'acpi      Microsoft ACPI...  Kernel        2024/5/11', 'ndis      NDIS 系统驱动程序  Kernel        2024/5/11', 'nvlddmkm  NVIDIA 显卡驱动    Kernel        2025/3/2', '……'],
+      exp: '<b>何时用：</b>怀疑某个硬件驱动出问题（断连、蓝屏）时，列出所有驱动和日期——<b>最近更新的驱动往往就是嫌疑犯</b>。配合 <code class="inline">driverquery /v</code> 看详情。' },
+    { n: 'sfc /scannow', admin: 1, cmd: 'sfc /scannow',
+      out: ['开始系统扫描。此过程将需要一些时间。', '', '开始系统扫描的验证阶段。', '验证 100% 已完成。', '', 'Windows 资源保护找到了损坏文件并成功修复了它们。', '详细信息包含在 CBS.Log 中：C:\\Windows\\Logs\\CBS\\CBS.log'],
+      exp: '<b>何时用：</b>系统文件被搞坏（莫名蓝屏、系统功能抽风、被"优化软件"误删）时，让它扫一遍自动修。<b>需管理员终端</b>，跑完常要求重启。同类：<code class="inline">DISM /Online /Cleanup-Image /RestoreHealth</code>（更深度的修复，先 DISM 后 SFC）。' },
+    { n: 'chkdsk D: /f', admin: 1, cmd: 'chkdsk D: /f',
+      out: ['文件系统的类型是 NTFS。', '阶段 1: 检查基本文件系统结构。', '  已处理 128,512 个文件记录。', '阶段 2: 检查文件名链接。', '阶段 3: 检查安全描述符。', 'Windows 已更正文件系统。', '无需重新启动。'],
+      exp: '<b>何时用：</b>U 盘/移动硬盘插上就提示"文件或目录损坏"、文件打不开、拷贝报错——先 chkdsk 抢救。<b>需管理员</b>；修 C 盘会提示"下次重启时检查"，输 Y 确认。数据盘修复前，重要文件先备份。' },
+    { n: 'powercfg /batteryreport', admin: 0, cmd: 'powercfg /batteryreport',
+      out: ['已生成电池报告。', '', 'C:\\Users\\you\\battery-report.html', '', '（用浏览器打开，看 DESIGN CAPACITY 设计容量', ' 和 FULL CHARGE CAPACITY 满充容量的比值 = 电池健康度）'],
+      exp: '<b>何时用：</b>买二手笔记本、或觉得续航崩了——一条命令生成 HTML 电池报告，<b>设计容量 ÷ 满充容量 &lt; 70% 就该换电池了</b>。还能看每天的充放电历史。' },
+    { n: 'cleanmgr', admin: 0, cmd: 'cleanmgr',
+      out: ['（弹出"磁盘清理"图形窗口）', '', '选择要删除的文件：', '  [x] 临时文件                 1.2 GB', '  [x] 回收站                   3.8 GB', '  [x] Windows 更新清理         6.5 GB', '', '……点确定开始清理'],
+      exp: '<b>何时用：</b>C 盘飘红时的第一板斧（命令行启动的 GUI 工具）。<b>清理系统文件</b>按钮要点一下才看得到"Windows 更新清理"这种大头（需管理员确认）。命令行纯清理也可用 <code class="inline">cleanmgr /sagerun:1</code>——配合阶段④的 schtasks 做每周自动清理。' }
+  ];
+  var btns = document.getElementById('hc-btns');
+  var cmdEl = document.getElementById('hc-cmd');
+  var outEl = document.getElementById('hc-out');
+  var expEl = document.getElementById('hc-exp');
+  btns.innerHTML = H.map(function (h, i) {
+    return '<button class="opt" type="button" data-h="' + i + '">' + h.n + (h.admin ? ' 🔒' : '') + '</button>';
+  }).join('');
+  function pick(i) {
+    var h = H[i];
+    btns.querySelectorAll('.opt').forEach(function (x, xi) { x.classList.toggle('correct', xi === i); });
+    cmdEl.textContent = 'C:\\Users\\you> ' + h.cmd;
+    outEl.innerHTML = h.out.map(function (l) { return '<span>' + l.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>'; }).join('\n');
+    expEl.innerHTML = (h.admin ? '<span class="chip" style="background:#fee2e2;color:#991b1b">🔒 需管理员</span> ' : '<span class="chip">普通权限可用</span> ') + h.exp;
+  }
+  btns.addEventListener('click', function (e) {
+    var b = e.target.closest('.opt');
+    if (b) pick(+b.dataset.h);
+  });
+  pick(0);
+})();
+
+/* ============ 互动3：PATH 实验室 ============ */
+(function () {
+  var BASE = ['C:\\Windows\\system32', 'C:\\Windows', 'C:\\Windows\\System32\\Wbem', 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\', 'C:\\Users\\you\\AppData\\Local\\Microsoft\\WindowsApps'];
+  var chips = document.getElementById('pv-chips');
+  var btns = document.getElementById('pv-btns');
+  var out = document.getElementById('pv-out');
+  var exp = document.getElementById('pv-exp');
+  var stage = 0;
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function log(html) { var d = document.createElement('div'); d.innerHTML = html; out.appendChild(d); out.scrollTop = out.scrollHeight; }
+  function logLine(t, cls) { log('<span' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(t) + '</span>'); }
+  function logCmd(c) { log('<span class="pr">C:\\Users\\you&gt;</span> ' + esc(c)); }
+  function renderChips() {
+    var list = BASE.slice();
+    if (stage >= 1) list.push('C:\\tools');
+    chips.innerHTML = list.map(function (p, i) {
+      var pending = stage === 1 && i === list.length - 1;
+      return '<span class="chip" style="' + (pending ? 'background:#fef3c7;color:#92400e' : '') + '">' + esc(p) + (pending ? ' ⏳待生效' : '') + '</span>';
+    }).join('');
+  }
+  var CMDS = [
+    { label: '① where tool（复现事故）', run: function () {
+      logCmd('where tool');
+      logLine('信息: 用提供的模式无法找到文件。', 'err');
+      log('');
+      exp.className = 'explain';
+      exp.innerHTML = '<b>事故复现：</b>tool.exe 明明躺在 <code class="inline">C:\\tools</code> 里，但 <code class="inline">where</code> 找不到、直接敲 tool 也报"不是内部或外部命令"——<b>因为 C:\\tools 不在 PATH 里</b>，系统按 PATH 翻箱倒柜时根本不会翻它。这就是装完工具敲命令报错的第一大原因。<br><small>（冷知识：在 C:\\tools 目录里直接敲 <code class="inline">tool</code> 能跑——CMD 会先搜当前目录。但换个目录就抓瞎。）</small>';
+      stage = Math.max(stage, 0);
+      setBtns();
+    }},
+    { label: '② setx PATH "%PATH%;C:\\tools"', run: function () {
+      if (stage < 1) { logCmd('setx PATH "%PATH%;C:\\tools"'); logLine('成功: 指定的值已保存。', 'ok'); log(''); exp.className = 'explain'; exp.innerHTML = '<b>写进去了！</b>setx 把新 PATH 永久写进注册表（这就是"永久"和 set 的区别）。<br>但注意看上面的 PATH 目录列表：<b>C:\\tools 标成了 ⏳待生效</b>——因为已开着的终端用的是启动那一刻的快照，不会热更新。现在敲 where tool 试试？照样找不到。<b>下一步：重开终端。</b>'; stage = 1; renderChips(); setBtns(); }
+    }},
+    { label: '③ 重开终端，再试', run: function () {
+      if (stage < 1) return;
+      logLine('（关掉窗口，重新打开一个终端……）', 'cm');
+      logCmd('where tool');
+      logLine('C:\\tools\\tool.exe', 'ok');
+      log('');
+      exp.className = 'explain good';
+      exp.innerHTML = '<b>修好了！</b>新终端从注册表读到包含 C:\\tools 的新 PATH，where 顺利定位 tool.exe。现在<b>在任何目录敲 tool 都能跑</b>。<br>记住这个闭环：<b>装工具 → 敲命令报错 → 查 PATH → setx 或图形界面加目录 → <u>重开终端</u> → 好了</b>。最后一步最容易被忽略，能省下 90% 的"装了怎么没用"求助。';
+      stage = 2;
+      renderChips();
+      setBtns();
+    }}
+  ];
+  function setBtns() {
+    btns.querySelectorAll('.opt').forEach(function (b, i) {
+      b.disabled = i === 1 && stage >= 1 ? true : (i === 2 && stage < 1);
+      if (i === 0 && stage >= 2) b.disabled = true;
+    });
+  }
+  btns.innerHTML = CMDS.map(function (c, i) {
+    return '<button class="opt" type="button" data-p="' + i + '">' + c.label + '</button>';
+  }).join('');
+  btns.addEventListener('click', function (e) {
+    var b = e.target.closest('.opt');
+    if (!b) return;
+    CMDS[+b.dataset.p].run();
+  });
+  log('<span class="cm">旁白：你刚把一个超好用的工具装进了 C:\\tools。</span>');
+  log('');
+  renderChips();
+  setBtns();
+})();
+
+/* ============ 互动4：schtasks 逐段精讲 ============ */
+(function () {
+  var PARTS = [
+    { t: 'schtasks', title: '程序名：计划任务管家', desc: 'Windows 自带的计划任务命令行工具（外部程序）。它的图形界面搭档叫 taskschd.msc（任务计划程序），两条路操作的是同一批任务。', tip: '' },
+    { t: '/Create', title: '开关 /Create：创建任务', desc: '告诉 schtasks 这次要"创建"。它的兄弟开关：/Query 查询、/Run 立即执行、/End 结束、/Delete 删除、/Change 修改。', tip: '创建需要管理员权限吗？建"只在当前用户登录时跑"的任务不需要；建"不管用户在不在都跑"的需要。' },
+    { t: '/TN "夜间清理"', title: '/TN = Task Name，任务起名', desc: '给任务起个名字，以后查询、运行、删除都靠它点名。带空格或中文要加引号。', tip: '名字可以带路径：/TN "维护\夜间清理" 会在任务计划程序里建出文件夹分组。' },
+    { t: '/TR "cleanmgr /sagerun:1"', title: '/TR = Task Run，要执行的命令', desc: '到点后真正跑的命令。整条命令套引号——因为里面自己还有参数（/sagerun:1），不加引号会被切词。', tip: '跑批处理也可以：/TR "C:\脚本\备份.bat"。想看任务跑没跑成，任务计划程序里看"上次运行结果"，0 表示成功。' },
+    { t: '/SC DAILY', title: '/SC = Schedule，多久一次', desc: '频率表：MINUTE（每几分钟）、HOURLY（每小时）、DAILY（每天）、WEEKLY（每周，配 /D 周几）、ONLOGON（登录时）、ONSTART（开机时）。', tip: '/SC MINUTE /MO 30 = 每 30 分钟一次；/SC WEEKLY /D SUN /ST 09:00 = 每周日早上 9 点。' },
+    { t: '/ST 23:30', title: '/ST = Start Time，几点开始', desc: '当天内的具体时间点，24 小时制。半夜跑清理、凌晨跑备份，避开你用电脑的时段。', tip: '电脑半夜关机怎么办？加 /Z 开关=到点没开机就过期作废；或者干脆安排在开机后：/SC ONLOGON。' }
+  ];
+  var src = document.getElementById('sc-src');
+  var title = document.getElementById('sc-title');
+  var desc = document.getElementById('sc-desc');
+  src.innerHTML = PARTS.map(function (p, i) {
+    return '<span class="anat" data-i="' + i + '">' + p.t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>';
+  }).join(' ');
+  src.addEventListener('click', function (e) {
+    var s = e.target.closest('.anat');
+    if (!s) return;
+    src.querySelectorAll('.anat').forEach(function (x) { x.classList.toggle('on', x === s); });
+    var p = PARTS[+s.dataset.i];
+    title.textContent = p.title;
+    desc.textContent = p.desc;
+  });
+  src.querySelectorAll('.anat')[1].classList.add('on');
+  title.textContent = PARTS[1].title;
+  desc.textContent = PARTS[1].desc;
+})();
+
+/* ============ 互动5：winget ============ */
+(function () {
+  var W = [
+    { n: 'winget search python', cmd: 'winget search python',
+      out: ['名称             ID                    版本      匹配     源', '------------------------------------------------------------------', 'Python 3.12      Python.Python.3.12    3.12.4    python   winget', 'Python 3.11      Python.Python.3.11    3.11.9    python   winget', 'Python 3         Python.Python.3.13    3.13.0    python   winget'],
+      exp: '<b>search 搜索</b>：不确定软件的"官方 ID"时先搜。<b>ID 那一列才是 install 要用的名字</b>（区分大小写、带点分层级）。' },
+    { n: 'winget install Python.Python.3.12', cmd: 'winget install Python.Python.3.12',
+      out: ['找到 Python 3.12 [Python.Python.3.12]', '此应用程序由其所有者授权给你。', '正在下载 ████████████████████  26.1 MB / 26.1 MB', '已成功安装', '', '（装完敲 python --version 验证；若提示找不到命令，', ' 回顾 PATH 实验室——重开终端！）'],
+      exp: '<b>install 安装</b>：从微软官方源直达，没有捆绑全家桶、没有下载站套路。加 <code class="inline">--silent</code> 可以全程无弹窗静默装。<b>装完命令找不到？99% 是 PATH 还没生效——重开终端。</b>' },
+    { n: 'winget upgrade --all', cmd: 'winget upgrade --all',
+      out: ['名称                  ID                版本       可用       源', '------------------------------------------------------------------', 'Git                   Git.Git           2.45.0     2.47.0    winget', 'VS Code               Microsoft.VSC...  1.92.0     1.94.0    winget', '', '正在升级 Git…… 已成功升级', '正在升级 VS Code…… 已成功升级', '2 个升级已成功安装'],
+      exp: '<b>upgrade 全量升级</b>：先 <code class="inline">winget upgrade</code>（不带参数）列出可升级清单，加 <code class="inline">--all</code> 一键全升。<b>全机器软件保持最新就这一条命令</b>，定个计划任务每周自动跑都行（用阶段④学的 schtasks）。' },
+    { n: 'winget uninstall XXX', cmd: 'winget uninstall Python.Python.3.11',
+      out: ['找到 Python 3.11 [Python.Python.3.11]', '已成功卸载'],
+      exp: '<b>uninstall 卸载</b>：干净利落，不带残留弹窗。<code class="inline">winget list</code> 能列出所有已装软件（含不是 winget 装的）——装机清单一目了然。' }
+  ];
+  var btns = document.getElementById('wg-btns');
+  var cmdEl = document.getElementById('wg-cmd');
+  var outEl = document.getElementById('wg-out');
+  var expEl = document.getElementById('wg-exp');
+  btns.innerHTML = W.map(function (w, i) {
+    return '<button class="opt" type="button" data-w="' + i + '"><code class="inline">' + w.n + '</code></button>';
+  }).join('');
+  function pick(i) {
+    var w = W[i];
+    btns.querySelectorAll('.opt').forEach(function (x, xi) { x.classList.toggle('correct', xi === i); });
+    cmdEl.textContent = 'C:\\Users\\you> ' + w.cmd;
+    outEl.innerHTML = w.out.map(function (l) { return '<span>' + l.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>'; }).join('\n');
+    expEl.innerHTML = w.exp;
+  }
+  btns.addEventListener('click', function (e) {
+    var b = e.target.closest('.opt');
+    if (b) pick(+b.dataset.w);
+  });
+  pick(0);
+})();
+</script>
+</body>
+</html>
