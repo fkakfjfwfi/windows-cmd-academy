@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段⑧ 系统急救与安全 —— 电脑坏了不慌 · 命令行学院</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="bar">
+    <span class="brand"><span class="logo">&gt;_</span>命令行学院</span>
+    <nav class="nav">
+      <a href="index.html">总览</a>
+      <a href="stage1.html">① 终端</a>
+      <a href="stage2.html">② 文件</a>
+      <a href="stage3.html">③ 管道</a>
+      <a href="stage4.html">④ 网络</a>
+      <a href="stage5.html">⑤ 系统</a>
+      <a href="stage6.html">⑥ PowerShell</a>
+      <a href="stage7.html">⑦ 批处理</a>
+      <a href="stage8.html">⑧ 急救安全</a>
+      <a href="stage9.html">⑨ 进阶</a>
+      <a href="projects.html">🎯 实战营</a>
+      <a href="cheatsheet.html">⌨ 速查</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" style="padding:30px 32px">
+    <span class="tag">阶段 ⑧ · 预计 2~3 天 · 最能救命的一课</span>
+    <h1 style="font-size:24px">系统急救与安全 —— 电脑坏了不慌</h1>
+    <p class="lead">阶段目标：系统文件坏了会按官方流程修（DISM → SFC）、"拒绝访问"的文件能抢回来、注册表敢查会备、<b>哪些命令碰不得心里有数</b>。</p>
+    <div class="pwrap">
+      <div class="progress"><div class="fill" data-progress-bar="8"></div></div>
+      <span class="plabel" data-progress-label="8"></span>
+    </div>
+  </section>
+
+  <!-- ============ 互动1：系统修复决策树 ============ -->
+  <section class="section">
+    <h2>互动 1 · 系统急救决策树（三大病症 × 标准处方）<span class="chip" data-stage-progress="8"></span></h2>
+    <p class="muted">选一个"病症"，按步骤执行处方。每一步都有<b>真实输出样例</b>和"为什么要这么做"。流程全部来自微软官方支持文档。</p>
+    <div class="card">
+      <div class="opts" id="rx-scen"></div>
+      <div style="margin:14px 0 6px;display:flex;align-items:center;gap:10px">
+        <button class="btn primary" type="button" id="rx-next">执行下一步 →</button>
+        <button class="btn sm" type="button" id="rx-reset">⟲ 重置</button>
+        <span class="muted" id="rx-progress" style="font-size:13px"></span>
+      </div>
+      <div class="dx" id="rx-dots"></div>
+      <div class="term" style="margin-top:10px">
+        <div class="term-bar">
+          <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+          <span class="ttitle">管理员: 命令提示符（模拟）</span>
+        </div>
+        <div class="term-body" id="rx-out"></div>
+      </div>
+      <div class="explain" id="rx-exp">👆 先选病症，再一步步执行。所有修复命令都需要管理员终端。</div>
+    </div>
+  </section>
+
+  <!-- ============ 互动2：权限抢救实验室 ============ -->
+  <section class="section">
+    <h2>互动 2 · "拒绝访问"抢救实验室（takeown + icacls 组合拳）</h2>
+    <p class="muted">老硬盘、别人留下的系统盘、重装后的旧用户文件夹——打开就弹"你需要权限来执行此操作"。三步组合拳按顺序来，<b>顺序错了抢不动</b>。</p>
+    <div class="lab-grid">
+      <div class="card">
+        <h3>📁 目标：C:\遗物\（来自旧电脑的文件夹）</h3>
+        <div id="pm-state"></div>
+        <div class="opts" id="pm-btns" style="margin-top:10px"></div>
+      </div>
+      <div class="card">
+        <div class="term">
+          <div class="term-bar">
+            <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+            <span class="ttitle">管理员: 命令提示符（模拟）</span>
+          </div>
+          <div class="term-body" id="pm-out"></div>
+        </div>
+        <div class="explain" id="pm-exp">故事线：从报废笔记本拆下的硬盘接到了新电脑，C:\遗物\ 里是以前的照片，双击却提示"拒绝访问"。按 ①→②→③ 顺序抢救。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 互动3：注册表操作台 ============ -->
+  <section class="section">
+    <h2>互动 3 · 注册表操作台（reg 命令四板斧）</h2>
+    <p class="muted">注册表是 Windows 的"系统级设置数据库"，reg 命令让你不开 regedit 也能读写它。<b>先看安全守则，再动手。</b></p>
+    <div class="card">
+      <div class="opts" id="rg-btns"></div>
+      <div class="term" style="margin-top:10px">
+        <div class="term-bar">
+          <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+          <span class="ttitle">reg 命令 · 模拟终端</span>
+        </div>
+        <div class="term-body" id="rg-out"></div>
+      </div>
+      <div class="explain" id="rg-exp"></div>
+      <div class="callout warn" style="margin-top:10px"><b>安全守则：</b>① 动任何键之前先 <code class="inline">reg export</code> 备份成 .reg 文件，双击即可还原；② 删除键值前再 query 确认一次路径；③ 网上"优化教程"给的 reg 文件，看懂每一行再导入——注册表没有 Ctrl+Z。</div>
+    </div>
+  </section>
+
+  <!-- ============ 互动4：危险命令红线 ============ -->
+  <section class="section">
+    <h2>🚨 危险命令红线清单（点开看后果，终身受益）</h2>
+    <p class="muted">这些命令本身没有错——运维天天用。错的是<b>不知道它们的威力就回车</b>。每个都点一遍，知道后果才能防患。</p>
+    <div class="card">
+      <div class="opts" id="dg-btns"></div>
+      <div class="explain" id="dg-exp" style="margin-top:10px">👆 点任意一条，看它"正常用途 / 翻车现场 / 防呆方法"。</div>
+    </div>
+  </section>
+
+  <!-- ============ 应急工具箱 ============ -->
+  <section class="section">
+    <h2>🧰 应急工具箱（WinRE / 事件日志 / BitLocker）</h2>
+    <div class="grid g2">
+      <div class="card">
+        <h3>🖥 WinRE 恢复环境：系统进不去时的命令行</h3>
+        <p>系统连桌面都进不去？还有一层"箱子里的箱子"。三种进法：</p>
+        <table class="tbl">
+          <thead><tr><th>进法</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>设置入口</td><td>设置 → 系统 → 恢复 → 高级启动 → 立即重新启动</td></tr>
+            <tr><td> Shift 重启</td><td>开始菜单 → 电源 → <b>按住 Shift 点"重启"</b></td></tr>
+            <tr><td>开机强断电 ×2</td><td>开机能看到转圈就长按电源键强关，反复 2~3 次自动进 WinRE</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:8px">疑难解答 → 高级选项 里最常用的是：<b>启动修复</b>（自动修引导）、<b>系统还原</b>（回到还原点）、<b>命令提示符</b>（此时你的系统盘可能是 D:，用 <code class="inline">dir C:\</code> 先认路）。</p>
+        <pre class="code">bootrec /fixmbr      <span class="cm">&amp;:: 修主引导记录</span>
+bootrec /fixboot     <span class="cm">&amp;:: 重写引导扇区</span>
+bootrec /rebuildbcd  <span class="cm">&amp;:: 重建启动菜单</span>
+dism /image:C:\ /cleanup-image /restorehealth  <span class="cm">&amp;:: 离线修复系统文件</span></pre>
+      </div>
+      <div class="card">
+        <h3>📋 事件日志与磁盘加密速查</h3>
+        <table class="tbl">
+          <thead><tr><th>命令</th><th>作用</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">eventvwr</code></td><td>打开事件查看器（图形），系统蓝屏/报错时间点全在这里</td></tr>
+            <tr><td><code class="inline">wevtutil qe System /c:5 /rd:true /f:text</code></td><td>命令行看最近 5 条系统日志（倒序、文本格式）</td></tr>
+            <tr><td><code class="inline">wevtutil cl Application</code></td><td>清空某个日志（清理报错噪音用，慎）</td></tr>
+            <tr><td><code class="inline">manage-bde -status</code></td><td>看 BitLocker 加密状态（🔒 需管理员）</td></tr>
+            <tr><td><code class="inline">manage-bde -unlock D: -RecoveryPassword 111111-222222-…</code></td><td>用 48 位恢复密钥解锁加密盘</td></tr>
+            <tr><td><code class="inline">reagentc /info</code></td><td>看 WinRE 恢复环境是否启用</td></tr>
+            <tr><td><code class="inline">wmic diskdrive get model,status</code></td><td>硬盘健康速览（OK / Pred Fail 预警）</td></tr>
+          </tbody>
+        </table>
+        <div class="callout info" style="margin-top:8px"><b>蓝屏排查第一问：</b>eventvwr 里筛"错误"，看蓝屏时间点前后的来源（磁盘 / 驱动 / 内存）。80% 的蓝屏根源是<b>驱动或硬盘</b>，而不是"系统坏了重装吧"。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 打卡清单 ============ -->
+  <section class="section">
+    <div class="card check">
+      <h3>✅ 阶段⑧ 打卡清单（勾满 6 项才算通关）</h3>
+      <label><input type="checkbox" id="s8-1" data-persist> 在管理员终端跑完 <code class="inline">dism /online /cleanup-image /checkhealth</code>，看懂三种结果</label>
+      <label><input type="checkbox" id="s8-2" data-persist> 按 DISM → SFC 官方顺序跑一遍修复流（RestoreHealth 可只跑到出结果为止）</label>
+      <label><input type="checkbox" id="s8-3" data-persist> 在一个测试文件夹上完成 takeown → icacls 组合拳，确认能重新访问</label>
+      <label><input type="checkbox" id="s8-4" data-persist> 用 <code class="inline">reg query</code> 查看一个真实键值，再用 <code class="inline">reg export</code> 备份成 .reg 文件</label>
+      <label><input type="checkbox" id="s8-5" data-persist> 通读危险命令红线清单，说出 format / diskpart clean / cipher /w 各自的后果</label>
+      <label><input type="checkbox" id="s8-6" data-persist> 用 <code class="inline">wevtutil qe System /c:5 /rd:true /f:text</code> 看一眼自己电脑最近的系统事件</label>
+    </div>
+  </section>
+
+  <!-- ============ 动手任务 + 资源 ============ -->
+  <section class="section">
+    <div class="grid g2">
+      <div class="card">
+        <h3>🛠 动手任务（回到真电脑）</h3>
+        <p><b>任务：做一张"急救 U 盘"备忘卡</b>——新建 急救.txt，把下面四行抄进去，以后系统出事照着打：</p>
+        <pre class="code">① 修复系统文件（管理员）：
+   dism /online /cleanup-image /restorehealth
+   sfc /scannow
+② 进不去系统：强制断电3次 → 疑难解答 → 高级 → 启动修复
+③ 拒绝访问：
+   takeown /f "路径" /r /d y
+   icacls "路径" /grant %username%:F /t
+④ 查蓝屏：eventvwr → Windows日志 → 系统 → 筛选"错误"</pre>
+        <p class="muted" style="font-size:13px">再把它放到桌面 + 发一份到自己邮箱。真正的急救能力 = 事发时你能想起来"第一步干什么"。</p>
+      </div>
+      <div class="card">
+        <h3>📚 深入资源</h3>
+        <p><b>微软官方 SFC 支持页</b>——DISM → SFC 顺序的出处（support.microsoft.com 搜 "系统文件检查器"），所有第三方"修复教程"的原版。</p>
+        <p><b>SS64 的 icacls / bootrec / manage-bde 页面</b>——参数比官方文档更全，带大量示例。</p>
+        <p><b>十一论坛（elevenforum.com）的 Command Prompt 教程版块</b>——大量真实急救案例带完整命令输出。</p>
+        <p><b>CBS 日志定位法</b>：SFC 修不了的文件，看 <code class="inline">C:\Windows\Logs\CBS\CBS.log</code> 里搜 "[SR]" 行，能看到具体哪个文件没修好。</p>
+        <div class="callout ok"><b>通关标准：</b>朋友电脑"开不了机/一直弹错误"，你能不百度地报出前三步该干什么。</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="pager">
+    <a href="stage7.html">← 上一阶段：批处理进阶</a>
+    <a href="index.html">课程总览</a>
+    <a href="stage9.html">下一阶段：终端生态与效率 →</a>
+  </div>
+</main>
+
+<footer class="foot">阶段 ⑧ · 系统急救与安全 · 命令行学院</footer>
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  /* ============ 互动1：系统急救决策树 ============ */
+  (function () {
+    var SCEN = [
+      { name: '🩹 病症A：系统文件损坏（弹窗/功能异常）', steps: [
+        { cmd: 'dism /online /cleanup-image /checkhealth', out: [' deploying servicing stack…', '映像状态: 可修复', '已标记损坏，可用 /restorehealth 修复'],
+          exp: '<b>第一步只做体检</b>：/checkhealth 秒回，只看损坏标记。结果有三种： healthy（健康）、repairable（可修复，本例）、non-repairable（需更狠的手段）。' },
+        { cmd: 'dism /online /cleanup-image /restorehealth', out: ['[=====                    45.2%              ]', '[=================        82.9%              ]', '还原操作已成功完成。'],
+          exp: '<b>第二步换零件</b>：DISM 从 Windows Update 拉取完好的组件库把组件存储修好，5~20 分钟。<b>必须先跑它</b>——SFC 的修复原料就来自组件存储，原料坏了 SFC 就是白跑（官方文档明确的顺序）。' },
+        { cmd: 'sfc /scannow', out: ['开始系统扫描。此过程将需要一些时间。', '验证 100% 已完成。', 'Windows 资源保护找到了损坏文件并成功修复了它们。'],
+          exp: '<b>第三步修文件</b>：SFC 用刚修好的组件存储逐一校验并替换损坏的系统文件。结果四选一：无违反 / 已修复 / 无法修复（看 CBS.log）/ 无法执行（进安全模式再跑）。' },
+        { cmd: 'shutdown /r /t 0', out: ['系统正在重启…'], exp: '<b>收尾</b>：重启让修复生效。问题依旧？对被替换文件有执念就看 <code class="inline">C:\Windows\Logs\CBS\CBS.log</code> 里搜 "[SR]"。终极手段是"就地升级安装"（重装但保留文件和应用）。' }
+      ]},
+      { name: '🚑 病症B：系统进不去了', steps: [
+        { cmd: '（强断电×2 → WinRE）疑难解答 → 高级选项 → 启动修复', out: ['正在诊断电脑…', '启动修复无法修复你的电脑（或已自动完成）'],
+          exp: '<b>先进救援环境</b>：连续强制断电 2~3 次，Windows 会自动进 WinRE。启动修复是第一选择——它自动处理最常见的引导问题。' },
+        { cmd: '（WinRE 高级选项 → 命令提示符）dir C:\\', out: [' 卷的文件夹…', '2026/10/12  Windows  Users  Program Files …'],
+          exp: '<b>先认路</b>：WinRE 里系统盘可能换了盘符（C: 变成 D:）。<code class="inline">dir C:\</code> 看 Windows 文件夹在不在，不在就试 D:/E:。' },
+        { cmd: 'bootrec /fixmbr & bootrec /fixboot & bootrec /rebuildbcd', out: ['已成功写入 MBR', '已成功创建启动扇区', '已成功将安装添加到启动列表。总计 1 个安装'],
+          exp: '<b>修引导三连</b>：fixmbr 修主引导 → fixboot 重写引导扇区 → rebuildbcd 重建启动菜单。装双系统后启动菜单丢失、蓝屏报 0xc000000e，多半是这三条的事。' },
+        { cmd: 'chkdsk C: /f  →  （回 WinRE 选 系统还原）', out: ['文件系统已修复，无需重新启动。', '系统还原完成。'],
+          exp: '<b>兜底</b>：文件系统坏了也会导致进不去，chkdsk /f 修完再试。还不行就用系统还原回到"出事前"的还原点——这不删你的文件。' }
+      ]},
+      { name: '💽 病症C：磁盘读写错误/复制报错', steps: [
+        { cmd: 'wmic diskdrive get model,status', out: ['Model                Status', 'WDC WD10EZEX-08WN4A0 OK', 'Samsung SSD 970 EVO  OK'],
+          exp: '<b>先看盘本身</b>：Status=OK 正常；<b>Pred Fail</b>（预警失败）= 硬盘自己都预测要挂了——立刻备份，别折腾修复。' },
+        { cmd: 'chkdsk D: /f', out: ['阶段 1: 正在检查文件、文件夹和索引…', '已修复 3 个文件系统错误。', '无需重新启动。'],
+          exp: '<b>修文件系统</b>：/f 修逻辑错误（索引、目录项错乱）。非系统盘当场修完；系统盘会要求重启时在开机前修。' },
+        { cmd: 'chkdsk D: /r', out: ['阶段 4: 正在检查用户文件数据中的错误…', '正在尝试恢复有坏扇区中的数据…', '已恢复 1 个可读扇区。'],
+          exp: '<b>深扫坏道</b>：/r 包含 /f 并额外扫描物理坏扇区、尝试抢救数据。机械盘大容量要跑几小时——<b>只在你已备份完重要数据后跑</b>（坏盘被深扫可能加速死亡）。' },
+        { cmd: '（开始备份）robocopy D:\\重要 E:\\救援 /e /z', out: ['   新文件      2048   笔记.txt', '已复制 1024 个文件'],
+          exp: '<b>真·急救核心</b>：盘出现 Pred Fail 或反复报错后，唯一正确的动作是<b>尽快备份</b>。robocopy /z 断点续传——中途断了重跑会接着传。修好不如备好。' }
+      ]}
+    ];
+    var scenEl = document.getElementById('rx-scen');
+    var dotsEl = document.getElementById('rx-dots');
+    var outEl = document.getElementById('rx-out');
+    var expEl = document.getElementById('rx-exp');
+    var progEl = document.getElementById('rx-progress');
+    var cur = -1, step = -1, timer = null;
+
+    SCEN.forEach(function (s, i) {
+      var b = document.createElement('button');
+      b.className = 'opt';
+      b.type = 'button';
+      b.textContent = s.name;
+      b.addEventListener('click', function () {
+        cur = i; step = -1;
+        scenEl.querySelectorAll('.opt').forEach(function (x) { x.classList.remove('correct'); });
+        b.classList.add('correct');
+        paint(true);
+      });
+      scenEl.appendChild(b);
+    });
+
+    function paint(fresh) {
+      if (fresh) { outEl.innerHTML = '<span class="cm">已选择剧本。点「执行下一步」逐步执行。</span>'; expEl.textContent = '每一步都有真实输出。想一想再点下一步。'; }
+      var s = SCEN[cur];
+      dotsEl.innerHTML = s.steps.map(function (_, i) {
+        var cls = 'dx-step' + (i < step ? ' done' : i === step ? ' on' : '');
+        return '<span class="' + cls + '"></span>';
+      }).join('');
+      progEl.textContent = cur >= 0 ? ('第 ' + (step + 1) + ' / ' + s.steps.length + ' 步') : '';
+    }
+    document.getElementById('rx-next').addEventListener('click', function () {
+      if (cur < 0) { expEl.textContent = '先选一个病症！'; return; }
+      var s = SCEN[cur];
+      if (step >= s.steps.length - 1) { expEl.innerHTML = '<b>本剧本完成 ✅</b> 换个病症试试，或重置后自己再走一遍。'; return; }
+      step++;
+      var st = s.steps[step];
+      if (timer) clearTimeout(timer);
+      outEl.innerHTML = '<div><span class="pr">C:\\&gt;</span> ' + st.cmd.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</div>' +
+        st.out.map(function (l) { return '<div class="cm">' + l + '</div>'; }).join('');
+      expEl.innerHTML = '<b>第 ' + (step + 1) + ' 步：</b>' + st.exp;
+      paint(false);
+    });
+    document.getElementById('rx-reset').addEventListener('click', function () {
+      cur = -1; step = -1;
+      scenEl.querySelectorAll('.opt').forEach(function (x) { x.classList.remove('correct'); });
+      outEl.innerHTML = ''; expEl.textContent = '👆 先选病症，再一步步执行。所有修复命令都需要管理员终端。';
+      dotsEl.innerHTML = ''; progEl.textContent = '';
+    });
+  })();
+
+  /* ============ 互动2：权限抢救实验室 ============ */
+  (function () {
+    var STEPS = [
+      { n: '① takeown /f "C:\\遗物" /r /d y', ok: '拿到所有权', out: [
+        'C:\\&gt; takeown /f "C:\\遗物" /r /d y',
+        '成功: 文件 (或文件夹): "C:\\遗物" 现在归用户 DESKTOP\\you 所有。',
+        '成功: 已处理 128 个文件; 处理了 12 个目录。'
+      ], exp: '<b>第一步：抢所有权（ownership）</b>。NTFS 里每个对象都有"所有者"，旧系统里的文件所有者是旧账户，你现在是外人。takeown /r 递归把所有者改成你。<b>/d y</b> 是"没有权限列目录时也回答 yes 继续"。' },
+      { n: '② icacls "C:\\遗物" /grant "%username%":F /t', ok: '拿到完全控制', out: [
+        'C:\\&gt; icacls "C:\\遗物" /grant you:F /t',
+        '已处理 128 个文件; 处理了 12 个目录。'
+      ], exp: '<b>第二步：授予权限</b>。所有权≠使用权，还要 <b>/grant 用户:F</b>（F=完全控制）+ /t 递归到每个子项。这一步做完就能打开文件夹了。' },
+      { n: '③ icacls "C:\\遗物" /reset /t /q', ok: '恢复正常继承', out: [
+        'C:\\&gt; icacls "C:\\遗物" /reset /t /q',
+        '已处理 128 个文件; 处理了 12 个目录。'
+      ], exp: '<b>第三步：清理手工作业</b>。/reset 丢弃刚才逐个文件加的权限，恢复"从父目录继承"的正常状态——否则以后每个文件都带着一堆奇怪的个体权限。<b>做完就恢复原样，才叫懂行。</b>' }
+    ];
+    var btns = document.getElementById('pm-btns');
+    var outEl = document.getElementById('pm-out');
+    var expEl = document.getElementById('pm-exp');
+    var stEl = document.getElementById('pm-state');
+    var done = 0;
+    function state() {
+      stEl.innerHTML = done === 0
+        ? '<div class="callout warn" style="margin:0">📂 文件夹状态：<b>🔒 拒绝访问</b> —— 双击弹"你需要权限来执行此操作"</div>'
+        : '<div class="callout ' + (done >= 3 ? 'ok' : 'info') + '" style="margin:0">📂 文件夹状态：' + (done >= 3 ? '<b>✅ 可正常访问，权限已回归正常继承</b>' : '🔓 已完成 ' + done + ' / 3 步，继续') + '</div>';
+    }
+    state();
+    STEPS.forEach(function (s, i) {
+      var b = document.createElement('button');
+      b.className = 'opt';
+      b.type = 'button';
+      b.textContent = s.n;
+      b.addEventListener('click', function () {
+        if (i > done) { expEl.className = 'explain bad'; expEl.innerHTML = '<b>顺序错了！</b>权限抢救是连环拳：先 takeown（成为所有者）→ 再 icacls /grant（拿到权限）→ 最后 /reset（恢复继承）。先点 ①。'; return; }
+        if (i === done) {
+          done++;
+          outEl.innerHTML = s.out.map(function (l, k) { return '<div class="' + (k === 0 ? 'pr' : 'ok') + '">' + l + '</div>'; }).join('');
+          expEl.className = 'explain good';
+          expEl.innerHTML = '<b>' + s.ok + ' ✓</b> ' + s.exp;
+          state();
+        } else {
+          outEl.innerHTML = s.out.map(function (l, k) { return '<div class="' + (k === 0 ? 'pr' : 'ok') + '">' + l + '</div>'; }).join('');
+          expEl.className = 'explain';
+          expEl.innerHTML = '<b>（重放）</b>' + s.exp;
+        }
+      });
+      btns.appendChild(b);
+    });
+  })();
+
+  /* ============ 互动3：注册表操作台 ============ */
+  (function () {
+    var OPS = [
+      { n: 'reg query 查值', cmd: 'reg query "HKCU\\Software\\命令行学院" /v Version', out: [
+        'HKEY_CURRENT_USER\\Software\\命令行学院',
+        '    Version    REG_SZ    2.0'
+      ], exp: '<b>查</b>：列出键下所有值；/v 指定值名。HKCU=当前用户（免管理员），HKLM=整台机器（需管理员）。注册表五大根键里你 99% 的操作只碰 HKCU 和 HKLM。' },
+      { n: 'reg add 写值', cmd: 'reg add "HKCU\\Software\\命令行学院" /v Theme /t REG_SZ /d "dark" /f', out: ['操作成功完成。'], exp: '<b>写</b>：/v 值名、/t 类型（REG_SZ 字符串、REG_DWORD 数字最常用）、/d 数据、/f 免确认。网上教程的"关闭某功能"十有八九就是一条 reg add 改开关。' },
+      { n: 'reg export 备份（保命）', cmd: 'reg export "HKCU\\Software\\命令行学院" "%USERPROFILE%\\Desktop\\备份.reg"', out: ['操作成功完成。'], exp: '<b>备份</b>：把整个键导出成 .reg 文件。以后双击它即可原样恢复——<b>这是动注册表前的标准动作</b>，没有之一。' },
+      { n: 'reg delete 删值', cmd: 'reg delete "HKCU\\Software\\命令行学院" /v Theme /f', out: ['操作成功完成。'], exp: '<b>删</b>：/v 删单个值；不带 /v 则删整个键（更危险）。删之前先 query 核对路径 + export 备份。删 HKLM 下的系统键是"优化软件"搞坏系统的头号方式。' }
+    ];
+    var btns = document.getElementById('rg-btns');
+    var outEl = document.getElementById('rg-out');
+    var expEl = document.getElementById('rg-exp');
+    OPS.forEach(function (o) {
+      var b = document.createElement('button');
+      b.className = 'opt';
+      b.type = 'button';
+      b.textContent = o.n;
+      b.addEventListener('click', function () {
+        outEl.innerHTML = '<div><span class="pr">C:\\&gt;</span> ' + o.cmd.replace(/&/g, '&amp;') + '</div>' + o.out.map(function (l) { return '<div>' + l + '</div>'; }).join('');
+        expEl.innerHTML = o.exp;
+      });
+      btns.appendChild(b);
+    });
+  })();
+
+  /* ============ 互动4：危险命令红线 ============ */
+  (function () {
+    var DANGERS = [
+      { n: 'format X:', use: '格式化磁盘（高级格式化）', boom: '秒杀整盘数据。盘符敲错（想格 U 盘 E: 结果格了移动硬盘 D:）= 数据蒸发，且不可恢复。', guard: '跑之前 <code class="inline">vol X:</code> 看卷标、<code class="inline">dir X:\\</code> 看内容，确认里面不是你的照片库。' },
+      { n: 'diskpart → clean', use: '清空磁盘分区表（装机/换盘时用）', boom: 'clean 把分区表整个抹掉——所有分区瞬间"消失"。比 format 更彻底，恢复要靠专业工具碰运气。', guard: '永远先 <code class="inline">list disk</code> + <code class="inline">detail disk</code> 核对型号和容量再 select disk；80G 的 SSD 和 4T 的 HDD 分清。' },
+      { n: 'del /s /q C:\\某目录', use: '递归静默删除', boom: '不进回收站、无确认。路径少打一个空格：<code class="inline">del /s /q C:\\ 练习</code>（多了个空格）= 对 C 盘根目录递归删除，系统当场报废。', guard: '先跑 <code class="inline">dir /s C:\\某目录</code> 看要删什么；删除命令永远用引号包路径且检查空格。' },
+      { n: 'rd /s /q 目录', use: '递归删除目录树', boom: '同上，整个目录树秒没。经典事故：rd /s /q %TEMP% 写错成 rd /s /q %TEMP%\\. 或变量为空时变成对当前目录操作。', guard: '变量可能为空的命令前先 echo 看实际展开值：<code class="inline">echo rd /s /q "%TEMP%"</code>。' },
+      { n: 'cipher /w:C:\\', use: '覆写空闲空间（卖电脑前防恢复）', boom: '它本身"只"写空闲空间，但整盘覆写会持续数小时高负荷读写，老 SSD 折寿；更惨的是写错盘符变成对系统盘全盘覆写。', guard: '明确目标是盘不是目录；只在要出手硬盘时用一次。' },
+      { n: 'reg delete HKLM\\… /f', use: '删除注册表机器级键值', boom: 'HKLM 是系统全局配置。删错键 = 驱动加载失败、服务起不来、甚至无法登录，WinRE 修复都未必救得回。', guard: 'HKLM 一律先 export；"一键优化"的 .reg 文件用记事本打开看一眼有没有 delete 字样。' },
+      { n: 'vssadmin delete shadows /all', use: '删除全部卷影副本（还原点）', boom: '你的"后悔药"（系统还原点 + 以前版本文件）全灭。勒索病毒最爱跑这条——你手动跑效果一样。', guard: '想清理空间用系统设置里的"存储感知"，别手动删还原点。' },
+      { n: 'bcdedit /set …', use: '改启动配置（调试用）', boom: '改错参数轻则启动菜单混乱，重则系统无法引导，只能 WinRE 重建。', guard: '改之前 <code class="inline">bcdedit /export C:\\bcd-backup</code> 备份；出事用 <code class="inline">bootrec /rebuildbcd</code> 重建。' }
+    ];
+    var btns = document.getElementById('dg-btns');
+    var expEl = document.getElementById('dg-exp');
+    DANGERS.forEach(function (d) {
+      var b = document.createElement('button');
+      b.className = 'opt';
+      b.type = 'button';
+      b.textContent = d.n;
+      b.addEventListener('click', function () {
+        btns.querySelectorAll('.opt').forEach(function (x) { x.classList.remove('wrong'); });
+        b.classList.add('wrong');
+        expEl.innerHTML = '<b>命令</b>：<code class="inline">' + d.n.replace(/</g, '&lt;') + '</code><br>' +
+          '<b>正常用途</b>：' + d.use + '<br>' +
+          '<b>💥 翻车现场</b>：' + d.boom + '<br>' +
+          '<b>🛡 防呆方法</b>：' + d.guard;
+      });
+      btns.appendChild(b);
+    });
+  })();
+})();
+</script>
+
+</body>
+</html>

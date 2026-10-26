@@ -9,7 +9,7 @@
     try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {}
   }
   var state = load();
-  var TOTALS = { 1: 5, 2: 6, 3: 6, 4: 6, 5: 6, 6: 6 }; // 每阶段打卡项数量，合计 35
+  var TOTALS = { 1: 5, 2: 6, 3: 6, 4: 6, 5: 6, 6: 6, 7: 6, 8: 6, 9: 6, 10: 5 }; // 每阶段打卡项数量（10=实战项目营），合计 58
 
   // 恢复勾选状态
   var boxes = document.querySelectorAll('input[type="checkbox"][data-persist]');
@@ -46,7 +46,7 @@
     document.querySelectorAll('[data-progress-label]').forEach(function (el) {
       var which = el.getAttribute('data-progress-label');
       if (which === 'all' || which === '') el.textContent = c.allDone + ' / ' + c.allTotal + ' 项已打卡';
-      else el.textContent = (c.done[which] || 0) + ' / ' + (c.total[which] || 0) + ' · 阶段 ' + which;
+      else el.textContent = (c.done[which] || 0) + ' / ' + (c.total[which] || 0) + (which === '10' ? ' · 实战项目' : ' · 阶段 ' + which);
     });
     document.querySelectorAll('[data-stage-progress]').forEach(function (el) {
       var which = el.getAttribute('data-stage-progress');

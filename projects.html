@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>实战项目营 —— 五个真刀真枪的综合项目 · 命令行学院</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="bar">
+    <span class="brand"><span class="logo">&gt;_</span>命令行学院</span>
+    <nav class="nav">
+      <a href="index.html">总览</a>
+      <a href="stage1.html">① 终端</a>
+      <a href="stage2.html">② 文件</a>
+      <a href="stage3.html">③ 管道</a>
+      <a href="stage4.html">④ 网络</a>
+      <a href="stage5.html">⑤ 系统</a>
+      <a href="stage6.html">⑥ PowerShell</a>
+      <a href="stage7.html">⑦ 批处理</a>
+      <a href="stage8.html">⑧ 急救安全</a>
+      <a href="stage9.html">⑨ 进阶</a>
+      <a href="projects.html">🎯 实战营</a>
+      <a href="cheatsheet.html">⌨ 速查</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" style="padding:30px 32px">
+    <span class="tag">毕业实战 · 每个项目 = 一个真实需求</span>
+    <h1 style="font-size:24px">实战项目营 —— 五个真刀真枪的项目</h1>
+    <p class="lead">九个阶段学的命令在这里拧成一股绳。每个项目都有<b>目标 / 用到的技能 / 分步提示 / 参考实现</b>——先自己写，卡住了再看参考。做完 5 个，这门课就真正毕业了。</p>
+    <div class="pwrap">
+      <div class="progress"><div class="fill" data-progress-bar="10"></div></div>
+      <span class="plabel" data-progress-label="10"></span>
+    </div>
+  </section>
+
+  <div class="callout warn noprint" style="margin-top:24px">
+    <b>项目营守则：</b>① 所有实验在 <code class="inline">C:\练习</code> 里做；② 参考脚本是"参考"，抄之前先合上眼睛想 10 秒自己怎么写；③ 每个项目的通关标准在参考实现下方——达到标准再打卡。
+  </div>
+
+  <!-- ============ 项目一 ============ -->
+  <section class="section">
+    <div class="card check">
+      <span class="num" style="display:inline-flex;width:34px;height:34px;border-radius:10px;background:var(--brand);color:#fff;align-items:center;justify-content:center;font-weight:700">1</span>
+      <h3 style="display:inline;vertical-align:middle;margin-left:10px">一键电脑体检.bat</h3>
+      <p style="margin-top:10px">双击一次，电脑的"体检报告"自动生成并打开。给爸妈的电脑做维护时，让他们双击这个就行——<b>这是命令行孝心的样子</b>。</p>
+      <p>
+        <span class="chip">stage1 终端</span> <span class="chip">stage2 输出重定向</span> <span class="chip">stage5 体检命令</span> <span class="chip">stage7 %~dp0</span>
+      </p>
+      <details class="acc"><summary>分步提示（先自己想，卡住再展开）</summary>
+        <p>① 脚本开头 <code class="inline">cd /d %~dp0</code> 定位到脚本旁；② 建报告目录 <code class="inline">md 体检报告 2&gt;nul</code>；③ 每条命令用 <code class="inline">&gt;&gt;</code> 追加进同一个 txt；④ 顶上写 <code class="inline">echo 体检时间：%DATE% %TIME%</code>；⑤ 最后 <code class="inline">start 报告.txt</code> 自动打开。</p>
+      </details>
+      <pre class="code">@echo off
+cd /d %~dp0
+md 体检报告 2&gt;nul
+set R=体检报告\体检-%DATE:~0,10%.txt
+echo ================= 电脑体检报告 =================&gt; "%R%"
+echo 时间：%DATE% %TIME%&gt;&gt; "%R%"
+echo.【系统】&gt;&gt; "%R%" &amp; systeminfo | findstr /c:"OS" /c:"内存"&gt;&gt; "%R%"
+echo.【网络】&gt;&gt; "%R%" &amp; ipconfig | findstr "IPv4 网关"&gt;&gt; "%R%"
+echo.【磁盘】&gt;&gt; "%R%" &amp; wmic logicaldisk get caption,freespace,size&gt;&gt; "%R%"
+echo.【电池】&gt;&gt; "%R%" &amp; powercfg /batteryreport /output "%~dp0体检报告\电池.html" &gt;nul
+start "" "%R%"
+start "" "体检报告\电池.html"
+echo 体检完成，报告已打开 ✓
+pause</pre>
+      <p class="muted" style="font-size:13px"><b>通关标准：</b>在自己电脑跑通，报告里能看到 IP、剩余空间和电池健康；把脚本发给朋友，对方双击也能用（这就是 %~dp0 的意义）。</p>
+      <label><input type="checkbox" id="s10-1" data-persist> 项目①完成：一键体检.bat 在自己和朋友电脑都跑通了</label>
+    </div>
+  </section>
+
+  <!-- ============ 项目二 ============ -->
+  <section class="section">
+    <div class="card check">
+      <span class="num" style="display:inline-flex;width:34px;height:34px;border-radius:10px;background:var(--brand);color:#fff;align-items:center;justify-content:center;font-weight:700">2</span>
+      <h3 style="display:inline;vertical-align:middle;margin-left:10px">日志分析流水线</h3>
+      <p style="margin-top:10px">一个 50MB 的 app.log，找出所有 ERROR、按时间排序、统计谁报得最多、输出成报告。纯管道流，<b>不加任何软件</b>。</p>
+      <p>
+        <span class="chip">stage3 管道</span> <span class="chip">stage3 findstr 专题</span> <span class="chip">stage7 for /F</span>
+      </p>
+      <details class="acc"><summary>分步提示</summary>
+        <p>① 先 <code class="inline">findstr /n "ERROR" app.log</code> 看有多少行；② 想按行号排序就 <code class="inline">| sort</code>；③ 统计条数：<code class="inline">findstr /c:"ERROR" app.log | find /c /v ""</code>；④ 抽出"哪几个模块在报错"：for /F 逐行拆第 3 列再 sort 找重复；⑤ 全程 <code class="inline">&gt; 报告.txt</code> 留档。</p>
+      </details>
+      <pre class="code">:: 1) 把 ERROR 行抽出来（带行号）存档
+findstr /n /c:"ERROR" app.log &gt; 错误清单.txt
+
+:: 2) 总数统计
+find /c /v "" &lt; 错误清单.txt
+
+:: 3) 拆出报错模块（假设第3列是模块名，逗号分隔），统计谁最吵
+for /f "tokens=3 delims=," %%m in (错误清单.txt) do @echo %%m&gt;&gt; 模块统计.txt
+sort 模块统计.txt
+
+:: 4) 只看今天的错误（行首有日期 2026-10-26）
+findstr /b /c:"2026-10-26" 错误清单.txt &gt; 今日错误.txt</pre>
+      <p class="muted" style="font-size:13px"><b>通关标准：</b>四条流水线都能跑通；能不看提示说出每条命令"输出什么、被谁接住、加工成什么"。这就是阶段③那句"数据加工厂"的毕业考。</p>
+      <label><input type="checkbox" id="s10-2" data-persist> 项目②完成：日志四连拆全部跑通，能讲清每条管道的数据流向</label>
+    </div>
+  </section>
+
+  <!-- ============ 项目三 ============ -->
+  <section class="section">
+    <div class="card check">
+      <span class="num" style="display:inline-flex;width:34px;height:34px;border-radius:10px;background:var(--brand);color:#fff;align-items:center;justify-content:center;font-weight:700">3</span>
+      <h3 style="display:inline;vertical-align:middle;margin-left:10px">照片批量整理器</h3>
+      <p style="margin-top:10px">一个塞了 2000 张照片视频的"下载"文件夹：按扩展名分流到 照片/视频/截图/其他 四个子目录，再把照片按日期前缀改名。<b>通配符 + robocopy + 延迟变量的综合演出</b>。</p>
+      <p>
+        <span class="chip">stage2 robocopy</span> <span class="chip">stage2 通配符</span> <span class="chip">stage7 for /F + 延迟展开</span>
+      </p>
+      <details class="acc"><summary>分步提示</summary>
+        <p>① 四个 md 建目录；② robocopy 按通配符分流：*.jpg *.jpeg *.png *.heic → 照片，*.mp4 *.mov → 视频…；③ 用 <code class="inline">robocopy /l</code> 先"演习"一遍只列出不真的搬；④ 改名环节用 for + 延迟展开拼新名字；⑤ 最后 dir /b 检查各目录。</p>
+      </details>
+      <pre class="code">@echo off
+setlocal enabledelayedexpansion
+cd /d %~dp0
+md 照片 视频 截图 其他 2&gt;nul
+
+robocopy . 照片  *.jpg *.jpeg *.png *.heic /mov /njh /njs &gt;nul
+robocopy . 视频  *.mp4 *.mov *.avi          /mov /njh /njs &gt;nul
+robocopy . 截图  截图* 屏幕截图*            /mov /njh /njs &gt;nul
+robocopy . 其他  *                          /mov /njh /njs &gt;nul
+
+:: 照片统一改名：照片-序号.jpg（延迟展开做计数器）
+set /a n=1000
+for %%f in (照片\*.*) do (
+    set /a n+=1
+    ren "%%f" "照片-!n:~1!.%%~xf"
+)
+echo 整理完成 ✓  照片 %n% 起 / 其余按类型分流
+pause</pre>
+      <p class="muted" style="font-size:13px"><b>⚠ 两次提醒：</b><code class="inline">/mov</code> 是搬移（删原件），先拿 <code class="inline">/l</code> 参数空跑一遍看清单；"其他"兜底规则会搬走 bat 自己——把本脚本放在整理目标<b>外面</b>。<b>通关标准：</b>整理 50 个混合测试文件全部分流成功、照片序号连续、原件无残留。</p>
+      <label><input type="checkbox" id="s10-3" data-persist> 项目③完成：测试文件全部分流成功，/l 演习的习惯已养成</label>
+    </div>
+  </section>
+
+  <!-- ============ 项目四 ============ -->
+  <section class="section">
+    <div class="card check">
+      <span class="num" style="display:inline-flex;width:34px;height:34px;border-radius:10px;background:var(--brand);color:#fff;align-items:center;justify-content:center;font-weight:700">4</span>
+      <h3 style="display:inline;vertical-align:middle;margin-left:10px">C 盘空间营救</h3>
+      <p style="margin-top:10px">C 盘飘红是每个人都遇到过的绝境。这个项目做一张"营救清单"：从安全到狠招排序，一条条执行，<b>每一步都知道在删什么</b>。</p>
+      <p>
+        <span class="chip">stage5 cleanmgr</span> <span class="chip">stage9 du</span> <span class="chip">stage8 红线意识</span> <span class="chip">stage9 mklink 搬家</span>
+      </p>
+      <details class="acc"><summary>营救清单（按威力/风险排序，从上往下执行）</summary>
+        <p><b>第 1 级（无风险）</b>：du 或 tree 找大头 → 存储感知清临时文件 → <code class="inline">cleanmgr /d C:</code> 勾选"Windows 更新清理"（往往一次几个 GB）。</p>
+        <p><b>第 2 级（低风险）</b>：清 %TEMP% 里 30 天以上的老文件（forfiles /D -30）；<code class="inline">compact /compactos:always</code> 开系统级压缩（省 2GB+）；移动 微信/QQ 聊天记录目录到 D 盘。</p>
+        <p><b>第 3 级（要动脑）</b>：mklink /J 把大型软件目录"搬家"到 D 盘（四步法见下）；卸载重装到 D 盘。</p>
+        <p><b>红线</b>：手动删 C:\Windows 下任何东西、删 System Volume Information（还原点）、删除 pagefile.sys——都不行。</p>
+      </details>
+      <pre class="code">:: ① 找出谁最占空间（Sysinternals du，或用 PowerShell 一行）
+du -nobanner C:\Users\you | sort /r
+
+:: ② 清 30 天以上的临时文件（先 /l 演习，去掉 /l 真删）
+forfiles /p "%TEMP%" /s /d -30 /c "cmd /c echo @path"
+
+:: ③ 开启系统压缩（NTFS 原生，省 2GB+，性能几乎无损）
+compact /compactos:always
+
+:: ④ 大目录搬家四步法（以 C:\某软件 为例）
+robocopy "C:\某软件" "D:\某软件" /e /copyall
+ren "C:\某软件" "某软件-旧"
+mklink /j "C:\某软件" "D:\某软件"
+::   验证软件正常运行后：rd /s /q "C:\某软件-旧"</pre>
+      <p class="muted" style="font-size:13px"><b>通关标准：</b>实救一次自己或朋友的 C 盘，释放 ≥ 5GB，全程没有动用任何"清理大师"软件——并用一句话向对方解释 mklink /j 为什么"程序无感知"。</p>
+      <label><input type="checkbox" id="s10-4" data-persist> 项目④完成：实际释放 ≥ 5GB，mklink /j 搬家成功且软件正常</label>
+    </div>
+  </section>
+
+  <!-- ============ 项目五 ============ -->
+  <section class="section">
+    <div class="card check">
+      <span class="num" style="display:inline-flex;width:34px;height:34px;border-radius:10px;background:var(--brand);color:#fff;align-items:center;justify-content:center;font-weight:700">5</span>
+      <h3 style="display:inline;vertical-align:middle;margin-left:10px">每天 18:00 自动备份（毕业设计）</h3>
+      <p style="margin-top:10px">综合毕业考：<b>robocopy 脚本 + 日志 + 计划任务 + errorlevel 收尾</b>，一条链。做完这个，前面九个阶段就串成一个作品了。</p>
+      <p>
+        <span class="chip">stage7 批处理</span> <span class="chip">stage7 errorlevel</span> <span class="chip">stage5 schtasks</span> <span class="chip">stage2 robocopy /MIR</span>
+      </p>
+      <details class="acc"><summary>分步提示</summary>
+        <p>① 写 auto-backup.bat：定义 源/目标 两个变量置顶方便改；② robocopy /mir /r:2 /w:3 /xd 排除 node_modules；③ 输出 tee 进日志（bat 没有 tee，先 &gt; 再 findstr 转屏）；④ errorlevel 判断：robocopy ≤7 都算好；⑤ schtasks 挂 18:00 每日任务，再 /run 实测一次；⑥ 一周后翻日志检查。</p>
+      </details>
+      <pre class="code">:: ===== auto-backup.bat =====
+@echo off
+set SRC=%USERPROFILE%\Documents\重要资料
+set DST=D:\自动备份\重要资料
+set LOG=%~dp0backup-%DATE:~0,10%.log
+
+echo [%DATE% %TIME%] 开始备份 &gt; "%LOG%"
+robocopy "%SRC%" "%DST%" /mir /r:2 /w:3 /xd node_modules /njh &gt;&gt; "%LOG%"
+if %errorlevel% gtr 7 (
+    echo [%TIME%] 备份异常，退出码 %errorlevel% &gt;&gt; "%LOG%"
+    exit /b 1
+)
+echo [%TIME%] 备份完成 ✓（退出码 %errorlevel%，7以内=正常）&gt;&gt; "%LOG%"
+exit /b 0
+
+:: ===== 一次性挂载计划任务（管理员） =====
+schtasks /create /tn "每日自动备份" /tr "C:\tools\auto-backup.bat" ^
+         /sc daily /st 18:00
+schtasks /run   /tn "每日自动备份" &amp;:: 立即试跑一次
+schtasks /query /tn "每日自动备份"</pre>
+      <p class="muted" style="font-size:13px"><b>两个彩蛋考点：</b>① /mir 是镜像——源里删了目标也删，所以 D:\自动备份 里别手动存东西；② %DATE% 的截取位数随系统区域设置不同而不同，跑一下 <code class="inline">echo %DATE%</code> 确认自己的格式。<b>通关标准：</b>任务每天自动跑、日志连续七天有记录、故意断开目标盘再跑一次，日志里能看到 errorlevel 报警。</p>
+      <label><input type="checkbox" id="s10-5" data-persist> 项目⑤完成：定时任务连续运行一周，故障注入测试通过</label>
+    </div>
+  </section>
+
+  <!-- ============ 毕业总结 ============ -->
+  <section class="section">
+    <div class="callout ok">
+      <b>🎓 毕业标准（五项全勾即毕业）：</b>五个项目全部通关后，你已经具备——给家人维护电脑、给同事写小工具、自己电脑出事不慌、工作流全部自动化。<b>接下来</b>：把 cheat-sheet.html 打印出来贴在显示器旁；遇到新需求先想"命令行能不能一行解决"；每月回来看看速查表有没有新学的命令。命令行的世界比这门课大得多，但你已经有了地图和指南针。
+    </div>
+  </section>
+
+  <div class="pager">
+    <a href="stage9.html">← 上一阶段：终端生态与效率</a>
+    <a href="index.html">课程总览</a>
+    <a href="cheatsheet.html">终极速查表 →</a>
+  </div>
+</main>
+
+<footer class="foot">实战项目营 · 命令行学院 · 学完不用，等于没学</footer>
+<script src="assets/app.js"></script>
+</body>
+</html>

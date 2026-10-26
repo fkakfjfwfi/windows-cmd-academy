@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段⑨ 终端生态与效率 —— 老手的日常 · 命令行学院</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="bar">
+    <span class="brand"><span class="logo">&gt;_</span>命令行学院</span>
+    <nav class="nav">
+      <a href="index.html">总览</a>
+      <a href="stage1.html">① 终端</a>
+      <a href="stage2.html">② 文件</a>
+      <a href="stage3.html">③ 管道</a>
+      <a href="stage4.html">④ 网络</a>
+      <a href="stage5.html">⑤ 系统</a>
+      <a href="stage6.html">⑥ PowerShell</a>
+      <a href="stage7.html">⑦ 批处理</a>
+      <a href="stage8.html">⑧ 急救安全</a>
+      <a href="stage9.html">⑨ 进阶</a>
+      <a href="projects.html">🎯 实战营</a>
+      <a href="cheatsheet.html">⌨ 速查</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" style="padding:30px 32px">
+    <span class="tag">阶段 ⑨ · 预计 2~3 天 · 从"会用"到"顺手"</span>
+    <h1 style="font-size:24px">终端生态与效率 —— 老手的日常</h1>
+    <p class="lead">阶段目标：Windows Terminal 玩转分屏与配置、系统自带的 SSH / TAR / CURL 上手、<b>15 条冷门宝藏命令</b>收入囊中、认识微软官方的"瑞士军刀" Sysinternals。</p>
+    <div class="pwrap">
+      <div class="progress"><div class="fill" data-progress-bar="9"></div></div>
+      <span class="plabel" data-progress-label="9"></span>
+    </div>
+  </section>
+
+  <!-- ============ 互动1：Windows Terminal 配置台 ============ -->
+  <section class="section">
+    <h2>互动 1 · Windows Terminal 配置台（Ctrl+, 万物皆可配）<span class="chip" data-stage-progress="9"></span></h2>
+    <p class="muted">Win11 已是默认终端，Win10 商店安装。点每个技巧看怎么用——这些是官方文档里的精华。</p>
+    <div class="card">
+      <div class="opts" id="wt-btns"></div>
+      <div class="explain" id="wt-exp" style="margin-top:10px"></div>
+      <h3 style="margin-top:14px">⚙ settings.json 万能片段（Ctrl+, → 打开 JSON 文件）</h3>
+      <pre class="code">"profiles": {
+    "defaults": {
+        "startingDirectory": "%USERPROFILE%\\Desktop",  <span class="cm">// 默认从桌面开始，别再 cd 了</span>
+        "font": { "size": 12 },
+        "opacity": 92, "useAcrylic": true                <span class="cm">// 半透明毛玻璃</span>
+    }
+},
+"actions": [
+    { "keys": "ctrl+shift+space", "command": { "action": "splitPane", "split": "auto" } }  <span class="cm">// 一键智能分屏</span>
+]</pre>
+    </div>
+  </section>
+
+  <!-- ============ 互动2：冷门宝藏命令挖掘机 ============ -->
+  <section class="section">
+    <h2>互动 2 · 冷门宝藏命令挖掘机（15 条，条条能用上）</h2>
+    <p class="muted">出自 SS64 A-Z 索引和 Rob van der Woude 技巧表——它们不热门，但见过一次你就再也离不开。点挖掘。</p>
+    <div class="card">
+      <div class="opts" id="gm-btns"></div>
+      <div class="term" style="margin-top:10px">
+        <div class="term-bar">
+          <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+          <span class="ttitle" id="gm-cmd">C:\Users\you&gt;</span>
+        </div>
+        <div class="term-body" id="gm-out"></div>
+      </div>
+      <div class="explain" id="gm-exp">👆 一条一条挖，挖完去打卡清单勾掉。</div>
+    </div>
+  </section>
+
+  <!-- ============ 互动3：现代内置三件套 ============ -->
+  <section class="section">
+    <h2>互动 3 · 系统内置现代三件套：SSH / TAR / CURL</h2>
+    <p class="muted">别再以为 Windows 的命令行只能管本地——Win10 1809+ 起内置了 OpenSSH 客户端、tar 归档和 curl 传输。三张卡各点开看一次。</p>
+    <div class="grid g3">
+      <div class="card">
+        <h3>🔐 SSH 远程登录</h3>
+        <pre class="code">ssh user@192.168.1.20        <span class="cm">&amp;:: 登录 Linux 服务器</span>
+ssh -p 2222 user@host        <span class="cm">&amp;:: 指定端口</span>
+scp file.txt user@host:/tmp  <span class="cm">&amp;:: 远程拷文件</span></pre>
+        <p class="muted" style="font-size:13px">管理树莓派、云服务器、公司 Linux 机器从此不用装 Xshell。配合 <code class="inline">C:\Users\你\.ssh\config</code> 可以给主机起别名一键连。</p>
+      </div>
+      <div class="card">
+        <h3>📦 TAR 打包解包</h3>
+        <pre class="code">tar -a -c -f 备份.zip 目录   <span class="cm">&amp;:: 按扩展名自动选格式</span>
+tar -xf 备份.zip             <span class="cm">&amp;:: 一行解开（自动识别格式）</span>
+tar -czf 备份.tgz 目录       <span class="cm">&amp;:: 标准 Linux 风格</span></pre>
+        <p class="muted" style="font-size:13px"><b>-a</b> = 看扩展名自动选 zip/tar.gz。给同事发一堆文件、脚本里打包日志，不用再装 7-Zip 命令行版。</p>
+      </div>
+      <div class="card">
+        <h3>🌐 CURL 万能传输</h3>
+        <pre class="code">curl -I https://example.com  <span class="cm">&amp;:: 只看响应头</span>
+curl -O 网址                 <span class="cm">&amp;:: 下载文件（保留文件名）</span>
+curl -o 输出名 网址          <span class="cm">&amp;:: 下载并改名</span></pre>
+        <p class="muted" style="font-size:13px">脚本里下载安装包、测试接口通不通。配合 <code class="inline">curl -I | findstr HTTP</code> 就是极简测活。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 互动4：Sysinternals 工具箱 ============ -->
+  <section class="section">
+    <h2>互动 4 · Sysinternals：微软官方的命令行瑞士军刀</h2>
+    <p class="muted">1996 年由 Mark Russinovich 写的工具套件，2006 年被微软收编，免费、免安装、命令行为主。SS64 A-Z 里那一串 Ps 开头的命令就是它们。获取：微软商店搜 Sysinternals Suite，或直接访问 live.sysinternals.com。</p>
+    <div class="card">
+      <table class="tbl">
+        <thead><tr><th style="width:28%">工具</th><th style="width:34%">干什么</th><th>什么时候用它而不是普通命令</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">psexec</code></td><td>在远程/本机以 SYSTEM 身份执行程序</td><td>需要比管理员更高的 SYSTEM 权限排查服务；<code class="inline">psexec -s -i cmd</code> 开个 SYSTEM 终端长长见识</td></tr>
+          <tr><td><code class="inline">procdump</code></td><td>进程崩溃/高 CPU 时自动抓转储</td><td>程序闪退找不出原因时，<code class="inline">procdump -e -ma 应用名</code> 抓崩溃现场给开发者</td></tr>
+          <tr><td><code class="inline">psping</code></td><td>测端口延迟/带宽</td><td>ping 通但服务连不上？<code class="inline">psping 主机:443</code> 直接测端口层</td></tr>
+          <tr><td><code class="inline">accesschk</code></td><td>查"谁能访问什么"</td><td>icacls 说得含糊时，它直接列出某用户对文件/注册表/服务的实际权限</td></tr>
+          <tr><td><code class="inline">streams</code></td><td>列出 NTFS 附加数据流（ADS）</td><td>怀疑文件"从网上来被拦截"？<code class="inline">streams 文件</code> 能看到 Zone.Identifier 标记</td></tr>
+          <tr><td><code class="inline">sigcheck</code></td><td>查文件签名与 VirusTotal 状态</td><td>怀疑某个 exe 是伪装的：一行查数字签名是否有效</td></tr>
+          <tr><td><code class="inline">du</code></td><td>统计目录占用大小</td><td>C 盘爆了想找"谁最肥"，比资源管理器右键属性快得多</td></tr>
+          <tr><td><code class="inline">coreinfo</code></td><td>CPU 拓扑细节（核/缓存/NUMA）</td><td>性能调优时看哪些核共享缓存</td></tr>
+        </tbody>
+      </table>
+      <div class="callout info" style="margin-top:8px"><b>记忆方法：</b>P 系（PsExec/PsPing/PsList…）管<b>进程与远程</b>，无 P 系（AccessChk/Streams/DU…）管<b>文件与系统细节</b>。全部免费免安装，解压即用。</div>
+    </div>
+  </section>
+
+  <!-- ============ 互动5：doskey 宏实验室 ============ -->
+  <section class="section">
+    <h2>互动 5 · doskey 宏实验室（给自己造命令）</h2>
+    <p class="muted">doskey 不只是看历史（阶段①教过 /history）——它能<b>把长命令定义成你自己的短命令</b>。点按钮体验宏的定义与展开。</p>
+    <div class="card">
+      <div class="opts" id="dk-btns"></div>
+      <div class="term" style="margin-top:10px">
+        <div class="term-bar">
+          <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+          <span class="ttitle">doskey 宏实验室 · 模拟终端</span>
+        </div>
+        <div class="term-body" id="dk-out"></div>
+      </div>
+      <div class="explain" id="dk-exp"></div>
+      <div class="callout warn" style="margin-top:10px"><b>宏是一次性的</b>：关窗口就没。想永久生效，把 doskey 行写进 CMD 的自启动（注册表 <code class="inline">HKCU\Software\Microsoft\Command Processor</code> 的 AutoRun 值指向你的宏文件）——这正是 reg 命令的实战场景。</div>
+    </div>
+  </section>
+
+  <!-- ============ 打卡清单 ============ -->
+  <section class="section">
+    <div class="card check">
+      <h3>✅ 阶段⑨ 打卡清单（勾满 6 项才算通关）</h3>
+      <label><input type="checkbox" id="s9-1" data-persist> Windows Terminal 里用 Alt+Shift+D 智能分屏 + Ctrl+Shift+数字 打开不同配置</label>
+      <label><input type="checkbox" id="s9-2" data-persist> 把默认 startingDirectory 改成你的工作目录，重开终端验证生效</label>
+      <label><input type="checkbox" id="s9-3" data-persist> 用 <code class="inline">tar -a -c</code> 打包一个文件夹，再用 <code class="inline">tar -xf</code> 解开还原</label>
+      <label><input type="checkbox" id="s9-4" data-persist> 用 <code class="inline">curl -I</code> 看一个网站的响应头，说出 HTTP 状态码含义</label>
+      <label><input type="checkbox" id="s9-5" data-persist> 挖完 15 条冷门命令，挑 3 条加进自己的 doskey 宏</label>
+      <label><input type="checkbox" id="s9-6" data-persist> 下载 Sysinternals Suite，用 <code class="inline">du -nobanner C:\</code> 找出 C 盘最占空间的目录</label>
+    </div>
+  </section>
+
+  <!-- ============ 动手任务 + 资源 ============ -->
+  <section class="section">
+    <div class="grid g2">
+      <div class="card">
+        <h3>🛠 动手任务（回到真电脑）</h3>
+        <p><b>任务：搭建你的"效率终端"</b>——五件事做完，终端就是为你定制的：</p>
+        <p>① 安装/打开 Windows Terminal，设为默认终端；<br>
+        ② settings.json 里把 startingDirectory 指向工作目录；<br>
+        ③ 建宏文件 <code class="inline">C:\tools\alias.cmd</code>（内容几行 doskey），AutoRun 指向它；<br>
+        ④ 用 <code class="inline">ssh -V</code> / <code class="inline">curl --version</code> / <code class="inline">tar --version</code> 确认三件套在位；<br>
+        ⑤ Sysinternals 解压进 <code class="inline">C:\tools\sysinternals</code> 并加进 PATH。</p>
+        <p class="muted" style="font-size:13px">做完后打开终端就是"随时可干活"状态——这是老手和新手的肉眼区别。</p>
+      </div>
+      <div class="card">
+        <h3>📚 深入资源</h3>
+        <p><b>Windows Terminal 官方文档（learn.microsoft.com/windows/terminal）</b>——tips-and-tricks 页含全部快捷键与 JSON 写法。</p>
+        <p><b>devblogs.microsoft.com/commandline</b>——Windows 命令行团队官方博客，winget、Terminal 新版本第一手消息都在这。</p>
+        <p><b>Sysinternals 学习页（learn.microsoft.com/sysinternals）</b>——每个工具附官方使用文档与案例视频《Sysinternals Primer》。</p>
+        <p><b>SS64 全家</b>——学完 Windows 再看它的 Linux / macOS / PowerShell 版本，一鱼三吃。</p>
+        <div class="callout ok"><b>通关标准：</b>打开终端 30 秒内完成"分屏 + 到指定目录 + 跑宏"，全程手不离键盘。</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="pager">
+    <a href="stage8.html">← 上一阶段：系统急救与安全</a>
+    <a href="index.html">课程总览</a>
+    <a href="projects.html">下一站：实战项目营 →</a>
+  </div>
+</main>
+
+<footer class="foot">阶段 ⑨ · 终端生态与效率 · 命令行学院</footer>
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  /* ============ 互动1：Windows Terminal 技巧卡 ============ */
+  (function () {
+    var TIPS = [
+      { n: '分屏：Alt+Shift+D', exp: '<b>智能分屏</b>：按屏幕方向自动左右/上下分。指定方向：Alt+Shift+“+”左右分、Alt+Shift+“-”上下分；Alt+方向键 在窗格间移动焦点；Alt+Shift+方向键 调整窗格大小。左边跑 ping -t、右边看日志，不用再开两个窗口。' },
+      { n: 'Ctrl+Shift+数字：按配置开新标签', exp: '标签页顺序即快捷键序号：Ctrl+Shift+1 开默认配置（PowerShell），Ctrl+Shift+2 开第二个配置（比如 CMD），以此类推到 9。先把常用配置（CMD / PowerShell / WSL / SSH）拖到下拉菜单最前面。' },
+      { n: 'Ctrl+Shift+T / Ctrl+Shift+W', exp: '开新标签 / 关当前标签。纯 Ctrl+T / Ctrl+W 是浏览器的——注意别按混。' },
+      { n: '焦点模式（独占一个窗口）', exp: 'settings.json 的 actions 里加 <code class="inline">{ "command": "toggleFocusMode", "keys": "ctrl+f12" }</code>，即可一键隐藏标题栏变成极简大屏——演示/录屏时特别清爽。' },
+      { n: 'defaults：一次设置所有配置', exp: 'profiles.defaults 里的设置对每个配置生效（字体、透明度、起始目录…），不用逐个配。改完 Ctrl+S 立即生效，JSON 写错了 Terminal 会指出行号。' },
+      { n: 'wt 命令行开终端', exp: '在终端里输 <code class="inline">wt -p "CMD" -d C:\\tools</code>：用指定配置、指定目录直接开新窗口。可以拼多窗格：<code class="inline">wt -p CMD ; split-pane -p "PowerShell"</code>。脚本能自动"摆好工作台"。' }
+    ];
+    var btns = document.getElementById('wt-btns');
+    var expEl = document.getElementById('wt-exp');
+    TIPS.forEach(function (t) {
+      var b = document.createElement('button');
+      b.className = 'opt';
+      b.type = 'button';
+      b.textContent = t.n;
+      b.addEventListener('click', function () {
+        btns.querySelectorAll('.opt').forEach(function (x) { x.classList.remove('correct'); });
+        b.classList.add('correct');
+        expEl.innerHTML = '<b>' + t.n.split('：')[0] + '</b> —— ' + t.exp;
+      });
+      btns.appendChild(b);
+    });
+  })();
+
+  /* ============ 互动2：冷门宝藏命令挖掘机 ============ */
+  (function () {
+    var GEMS = [
+      { c: 'pushd D:\\项目 && popd', o: ['C:\\D:\\项目>', 'C:\\D:\\项目> popd', 'C:\\Users\\you>'], e: '<b>目录栈</b>：pushd 跳转并"记住来路"，popd 一秒回原处——比 cd 来 cd 去 干净得多，还支持网络路径（pushd \\\\服务器\\共享 会自动临时映射盘符）。' },
+      { c: 'subst X: C:\\深层目录\\嵌套\\好深', o: ['C:\\X:\\>  出现了一个新"硬盘" X:'], e: '<b>虚拟盘符</b>：给深层目录发一个盘符，<code class="inline">subst X: /d</code> 删除。把"点开五层才到"的工作目录变成一个盘符。与 mklink /d 符号链接效果类似，subst 无需管理员。' },
+      { c: 'doskey /history', o: ['ipconfig /all', 'robocopy C:\\资料 D:\\备份 /e', 'tasklist | findstr node'], e: '<b>历史命令列表</b>：本次会话敲过的全部命令。配合 F9（按编号重放）和 <code class="inline">doskey /history > 教程.log</code> 导出——写文档神器。' },
+      { c: 'choice /c YNC /m "确定要继续吗"', o: ['确定要继续吗 [Y,N,C]? Y'], e: '<b>交互确认</b>：bat 里做 Y/N 菜单，退出码即选项序号（errorlevel 1=Y）。脚本"危险操作前先问一句"全靠它，比 timeout 多了判断力。' },
+      { c: 'timeout /t 10 /nobreak', o: ['正在等待 10 秒，按 CTRL+C 键退出…'], e: '<b>脚本暂停</b>：批处理里"等 10 秒再继续"。/nobreak 按键也不能跳过。ping -n 11 127.0.0.1 >nul 是它的老式替代写法。' },
+      { c: 'title 服务器巡检中 · 不要关', o: ['（窗口标题已改变）'], e: '<b>窗口改名</b>：多窗口工作时的救命细节——一眼分清哪个是备份、哪个是巡检、哪个随便玩。脚本开头加一行 title 立刻显得专业。' },
+      { c: 'color 0A', o: ['（黑底绿字，黑客既视感）'], e: '<b>换配色</b>：第一位背景色、第二位前景色（0黑 A绿 2青 7白 F亮白…）。<code class="inline">color /?</code> 看全表。还原用 <code class="inline">color</code> 不带参数。' },
+      { c: 'msg %username% "该休息一下了"', o: ['（屏幕弹出消息框：该休息一下了）'], e: '<b>发消息框</b>：给本机/局域网会话弹窗（msg 用户名或会话名）。局域网同事电脑弹窗提醒，全场最靓的仔（需对方开启允许）。' },
+      { c: 'eventcreate /l APPLICATION /so 我的脚本 /id 100 /d "备份完成"', o: ['成功: 已创建事件 100，源为 "我的脚本"'], e: '<b>写事件日志</b>：让脚本在 Windows 事件日志里留痕。配合 wevtutil 查询，脚本运行历史有了官方存档。' },
+      { c: 'tzutil /g', o: ['China Standard Time'], e: '<b>时区查询</b>：/g 拿当前时区 ID，<code class="inline">tzutil /s "UTC"</code> 切换。服务器脚本里和 %DATE% 配合做跨时区日志对时。' },
+      { c: 'whoami /groups | findstr "12288"', o: ['（命中 = 当前是管理员身份）'], e: '<b>我是谁</b>：whoami /user 看账户、/groups 看组。判断当前是否管理员提权的土办法：筛 SID 12288（Administrators）。' },
+      { c: 'openfiles /query', o: ['ID  访问者    类型  文件', '12  DESKTOP\\you 文件  C:\\共享\\报表.xlsx'], e: '<b>谁开着我的文件</b>：列出本机共享中被打开的文件（需先 openfiles /local on 重启生效）。"这文件怎么删不掉"的元凶抓捕器。' },
+      { c: 'pktmon start --capture --comp nics -f 抓包.etl', o: ['数据包监视器已启动。'], e: '<b>内置抓包器</b>：Win10 2004+ 自带。抓网络包转 ETL，<code class="inline">pktmon etl2pcap 抓包.etl -o 抓包.pcapng</code> 转成 Wireshark 能读的格式——不用装抓包工具了。' },
+      { c: 'freedisk C:', o: ['信息: 可用磁盘空间: 187,431 磁盘字节总数等…'], e: '<b>剩余空间判断</b>：脚本里 <code class="inline">freedisk C: | findstr …</code> 做条件——C 盘剩余不足 5GB 就自动清理，防患于未然。' },
+      { c: 'wusa /uninstall /kb:5001234 /quiet /norestart', o: ['（静默卸载指定补丁，稍后生效）'], e: '<b>补丁手术刀</b>：某个更新把系统搞坏了？一条命令精准卸载它（/quiet 免交互）。配 <code class="inline">wmic qfe list</code> 先查已装补丁编号。' }
+    ];
+    var btns = document.getElementById('gm-btns');
+    var cmdEl = document.getElementById('gm-cmd');
+    var outEl = document.getElementById('gm-out');
+    var expEl = document.getElementById('gm-exp');
+    GEMS.forEach(function (g) {
+      var b = document.createElement('button');
+      b.className = 'opt';
+      b.type = 'button';
+      b.textContent = g.c.split(' ')[0];
+      b.addEventListener('click', function () {
+        cmdEl.innerHTML = 'C:\\Users\\you&gt; ' + g.c.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+        outEl.innerHTML = g.o.map(function (l) { return '<div>' + l.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</div>'; }).join('');
+        expEl.innerHTML = g.e;
+      });
+      btns.appendChild(b);
+    });
+  })();
+
+  /* ============ 互动5：doskey 宏实验室 ============ */
+  (function () {
+    var MACROS = [
+      { n: '定义宏 ll = 详细列表', cmd: 'doskey ll=dir /o:n', out: ['（宏已定义，无输出）', 'C:\\> ll', '2026/10/26  09:12    &lt;DIR&gt;          备份', '2026/10/26  09:30    &lt;DIR&gt;          照片', '2026/10/26  10:05    &lt;DIR&gt;          文档'], e: '<b>造第一条宏</b>：ll 就等于 dir /o:n。宏只在当前会话有效；$* 是占位符，代表"宏名后面跟的所有参数"。' },
+      { n: '带参数的宏: gh = 进入目录+列文件', cmd: 'doskey gh=cd /d "$*"$Tdir /b', out: ['C:\\> gh C:\\练习', '备份', '照片', '文档', 'todo.txt'], e: '<b>参数 + 组合技</b>：$* 接收参数，$T 连接两条命令。一个 gh 完成跳转+列出内容。' },
+      { n: '危险操作宏: rm = 删除前确认', cmd: 'doskey rm=echo 即将删除: $* & choice /c YN /m 确认 & if errorlevel 2 echo 已取消', out: ['C:\\> rm 测试.txt', '即将删除: 测试.txt', '确认 [Y,N]? Y'], e: '<b>给命令行装保险</b>：把 rm 定义成"先显示目标再确认"——用宏实现安全防呆，比背纪律更可靠。' },
+      { n: '宏也能存盘复用', cmd: 'doskey /macros > C:\\tools\\my-macros.txt', out: ['ll=dir /o:n', 'gh=cd /d "$*"$Tdir /b', 'rm=echo 即将删除: $* & choice /c YN /m 确认 & if errorlevel 2 echo 已取消'], e: '<b>导出收藏</b>：/macros 列出全部并重定向到文件。下次写进 AutoRun 启动脚本，终端一开宏就位。' }
+    ];
+    var btns = document.getElementById('dk-btns');
+    var outEl = document.getElementById('dk-out');
+    var expEl = document.getElementById('dk-exp');
+    MACROS.forEach(function (m) {
+      var b = document.createElement('button');
+      b.className = 'opt';
+      b.type = 'button';
+      b.textContent = m.n;
+      b.addEventListener('click', function () {
+        outEl.innerHTML = '<div><span class="pr">C:\\&gt;</span> ' + m.cmd + '</div>' + m.out.map(function (l) { return '<div>' + l + '</div>'; }).join('');
+        expEl.innerHTML = m.e;
+      });
+      btns.appendChild(b);
+    });
+  })();
+})();
+</script>
+
+</body>
+</html>

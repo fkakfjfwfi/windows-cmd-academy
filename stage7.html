@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段⑦ 批处理进阶 —— 让脚本真的能用 · 命令行学院</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="bar">
+    <span class="brand"><span class="logo">&gt;_</span>命令行学院</span>
+    <nav class="nav">
+      <a href="index.html">总览</a>
+      <a href="stage1.html">① 终端</a>
+      <a href="stage2.html">② 文件</a>
+      <a href="stage3.html">③ 管道</a>
+      <a href="stage4.html">④ 网络</a>
+      <a href="stage5.html">⑤ 系统</a>
+      <a href="stage6.html">⑥ PowerShell</a>
+      <a href="stage7.html">⑦ 批处理</a>
+      <a href="stage8.html">⑧ 急救安全</a>
+      <a href="stage9.html">⑨ 进阶</a>
+      <a href="projects.html">🎯 实战营</a>
+      <a href="cheatsheet.html">⌨ 速查</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" style="padding:30px 32px">
+    <span class="tag">阶段 ⑦ · 预计 3~5 天 · 全站的"分水岭之二"</span>
+    <h1 style="font-size:24px">批处理进阶 —— 让脚本真的能用</h1>
+    <p class="lead">阶段目标：搞懂 90% 新手写 bat 卡死的两大坑（<b>延迟变量</b>和 <b>for 语法</b>），学会接收参数、判断成败、写子过程——从此你的脚本能交给别人用。</p>
+    <div class="pwrap">
+      <div class="progress"><div class="fill" data-progress-bar="7"></div></div>
+      <span class="plabel" data-progress-label="7"></span>
+    </div>
+  </section>
+
+  <!-- ============ 动画课堂：延迟变量的一生 ============ -->
+  <section class="section">
+    <h2>🎬 动画课堂 · 《延迟变量的一生：%var% 与 !var! 之争》</h2>
+    <p class="muted">约 2 分钟 · 新手写批处理 90% 卡死在这一课。看懂它，你就超过大多数复制粘贴党了。点 ▶ 播放（🔊 可开关语音讲解）。</p>
+    <div class="lesson" id="lesson7">
+      <div class="screen"><div class="theater" id="th7">
+        <div class="row">
+          <div class="panel col" id="p7-l"><h4>📄 脚本 counter.bat</h4>
+            <pre class="p7-code" data-dyn id="p7-code"></pre>
+          </div>
+          <div class="col" style="flex:0 0 210px;max-width:210px">
+            <div class="th-pipe">
+              <div class="env" id="p7-env" data-fx>📖 逐行读入</div>
+            </div>
+            <div class="note" data-dyn id="p7-mid"></div>
+          </div>
+          <div class="panel col" id="p7-r"><h4>🖥 运行输出</h4>
+            <div class="th-screen" data-dyn id="p7-out"></div>
+          </div>
+        </div>
+        <div class="center-x" style="margin-top:14px">
+          <span class="pill" id="p7-read">整块读入</span>
+          <span class="pill" id="p7-exp">%var% 展开成快照</span>
+          <span class="pill" id="p7-fix">!var! 实时取值</span>
+        </div>
+        <div class="note" data-dyn id="p7-note"></div>
+      </div></div>
+    </div>
+  </section>
+  <script src="assets/lesson-player.js"></script>
+  <script>
+  (function () {
+    var CODE = [
+      'set count=0',
+      'for /L %%i in (1,1,3) do (',
+      '  set /a count+=1',
+      '  echo 第 %%i 圈：count=%count%',
+      ')'
+    ];
+    var CODE2 = [
+      'setlocal enabledelayedexpansion',
+      'set count=0',
+      'for /L %%i in (1,1,3) do (',
+      '  set /a count+=1',
+      '  echo 第 %%i 圈：count=!count!',
+      ')'
+    ];
+    var g = function (r, id) { return r.querySelector('#' + id); };
+    function lines(r, id, arr, hl) {
+      g(r, id).innerHTML = arr.map(function (l, i) {
+        return '<div class="ln' + (hl === i ? ' on' : '') + '">' + (l || '&nbsp;') + '</div>';
+      }).join('');
+    }
+    function out(r, arr, hl) {
+      g(r, 'p7-out').innerHTML = arr.map(function (l, i) {
+        return '<div class="ln' + (hl === i ? ' on' : '') + '">' + l + '</div>';
+      }).join('');
+    }
+    var S = [
+      { d: 12, cap: '新手任务：写个脚本从 1 数到 3，每圈报一次 count。看起来很简单，两行就写完了。', a: function (t) { lines(t, 'p7-code', CODE, -1); g(t, 'p7-mid').textContent = '等待运行…'; out(t, ['（还没运行）']); g(t, 'p7-env').textContent = '📖 逐行读入'; g(t, 'p7-note').textContent = '先猜一猜：输出是 count=1、2、3 吗？'; } },
+      { d: 14, cap: '但 cmd 读脚本的方式很特别：碰到 for 和它后面的整个括号块，会一口气全部读入，当成"一条语句"。', a: function (t) { lines(t, 'p7-code', CODE, 1); g(t, 'p7-mid').textContent = '整个括号块被一口气读入！'; g(t, 'p7-note').textContent = '关键规则：变量展开发生在"读入这一行"的瞬间，不是执行时。'; g(t, 'p7-env').textContent = '📦 整块读入'; }, cls: { 'p7-read': 'on', 'p7-l': 'on' } },
+      { d: 14, cap: '读入瞬间，cmd 把 %count% 替换成它"此刻"的值——0。替完才运行。循环里 set 改的只是内存里的真值，但文本早就写死成 0 了。', a: function (t) { lines(t, 'p7-code', CODE, 3); g(t, 'p7-mid').textContent = 'echo 行里的 %count% → 0（快照定格）'; g(t, 'p7-note').textContent = '这就是 %var% 的本质：读入时展开 = 拍快照。'; }, cls: { 'p7-read': 'good', 'p7-exp': 'on' } },
+      { d: 12, cap: '运行验证：count 明明每圈 +1，屏幕上却永远是 0。不是 bug，是快照太"忠实"。', a: function (t) { lines(t, 'p7-code', CODE, 3); out(t, ['第 1 圈：count=0', '第 2 圈：count=0', '第 3 圈：count=0']); g(t, 'p7-note').textContent = '新手最崩溃的时刻。罪魁祸首：读入时展开。'; g(t, 'p7-env').textContent = '🔥 运行中'; }, cls: { 'p7-exp': 'warn' } },
+      { d: 12, cap: '药方第一步：脚本开头加 setlocal enabledelayedexpansion，开启"延迟展开"模式。', a: function (t) { lines(t, 'p7-code', CODE2, 0); out(t, ['（还没运行）']); g(t, 'p7-mid').textContent = '开启延迟展开 ✓'; g(t, 'p7-note').textContent = 'setlocal 还有副作用：之后的 set 不会污染系统环境变量，脚本能"善始善终"。'; g(t, 'p7-env').textContent = '🔧 延迟模式'; }, cls: { 'p7-fix': 'on' } },
+      { d: 13, cap: '药方第二步：把要"实时取值"的 %count% 写成 !count!。感叹号告诉 cmd：这个别在读入时替换，执行到再说。', a: function (t) { lines(t, 'p7-code', CODE2, 4); g(t, 'p7-mid').textContent = '%count% → !count!（实时取值）'; g(t, 'p7-note').textContent = '口诀：%var% 是快照，!var! 是实时。'; }, cls: { 'p7-fix': 'good' } },
+      { d: 12, cap: '再跑一次：1、2、3 一次不少。延迟展开只在循环/括号块内需要，普通行用 %var% 就够了。', a: function (t) { lines(t, 'p7-code', CODE2, 4); out(t, ['第 1 圈：count=1', '第 2 圈：count=2', '第 3 圈：count=3'], 2); g(t, 'p7-note').textContent = '脚本结束记得 endlocal（不加也会在脚本结束时自动生效）。'; }, cls: { 'p7-l': 'good', 'p7-r': 'on' } },
+      { d: 12, cap: '一集记住三件事：① for/括号块整块读入 ② %var% 读入时展开成快照 ③ 循环内要用变化值就开延迟展开用 !var!。去下面的实验室亲手复现这个 bug！', a: function (t) { g(t, 'p7-mid').textContent = '懂了就往下练 ✓'; g(t, 'p7-note').textContent = '▼ 往下滚动，先在实验室里复现 bug 再修好它'; }, cls: { 'p7-read': 'good', 'p7-exp': 'good', 'p7-fix': 'good' } }
+    ];
+    new LessonPlayer({ root: '#lesson7', title: '延迟变量的一生：快照 vs 实时', scenes: S });
+  })();
+  </script>
+
+  <!-- ============ 互动1：for 全家实验室 ============ -->
+  <section class="section">
+    <h2>互动 1 · for 全家实验室（五种形态一次学会）<span class="chip" data-stage-progress="7"></span></h2>
+    <p class="muted">for 是批处理的发动机。点一个形态，看语法、虚拟输出和真实用途。<b>注意 bat 文件里写 %%i，命令行里手敲写 %i</b>——双百分号是给脚本文件用的。</p>
+    <div class="lab-grid">
+      <div class="card">
+        <h3>⚙ 选择 for 形态</h3>
+        <div class="opts" id="fo-btns"></div>
+        <div class="callout info" id="fo-tip" style="margin-top:10px">👆 从上往下点，五种形态覆盖 95% 的场景。</div>
+      </div>
+      <div class="card">
+        <div class="term">
+          <div class="term-bar">
+            <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+            <span class="ttitle" id="fo-cmd">C:\练习&gt;</span>
+          </div>
+          <div class="term-body" id="fo-out"></div>
+        </div>
+        <div class="explain" id="fo-exp"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 互动2：字符串手术台 ============ -->
+  <section class="section">
+    <h2>互动 2 · 字符串手术台（%var% 的隐藏技能）</h2>
+    <p class="muted">变量不只是存值：bat 里可以<b>截取、替换、拼接</b>。演示对象是文件名 <code class="inline">abc-2026-report.txt</code>。点刀法看结果。</p>
+    <div class="card">
+      <div class="opts" id="st-btns"></div>
+      <div class="term" style="margin-top:10px">
+        <div class="term-bar">
+          <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+          <span class="ttitle">字符串手术台 · 模拟终端</span>
+        </div>
+        <div class="term-body" id="st-out"></div>
+      </div>
+      <div class="explain" id="st-exp"></div>
+    </div>
+  </section>
+
+  <!-- ============ 互动3：参数与子过程 ============ -->
+  <section class="section">
+    <h2>互动 3 · 接收参数与子过程（让脚本可复用）</h2>
+    <p class="muted">好脚本 = 别人传参数就能用。<code class="inline">%1</code> 是第一个参数，<code class="inline">%~dp0</code> 是"脚本自己所在的目录"——写"绿色便携脚本"的灵魂。点条目看解释。</p>
+    <div class="lab-grid">
+      <div class="anat-box" id="pa-src"></div>
+      <div class="card">
+        <h3 id="pa-title" style="color:var(--brand)">👆 点左边任意一段</h3>
+        <p id="pa-desc">示例脚本 greet.bat：<b>greet.bat 小明 3</b> → 打印三遍"你好，小明"。参数让一个脚本顶十个。</p>
+        <pre class="code" id="pa-code" hidden></pre>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>🧩 子过程：call + 标签 + goto :eof</h3>
+      <pre class="code">@echo off
+call :say hello          <span class="cm">&amp;:: 跳到 :say 执行，带一个参数</span>
+echo 回到主流程           <span class="cm">&amp;:: call 会"回来"，goto 不会</span>
+goto :eof                <span class="cm">&amp;:: 主流程到此结束，防止掉进子过程</span>
+
+:say                     <span class="cm">&amp;:: 子过程定义（标签）</span>
+echo [子过程] 收到参数：%1
+goto :eof                <span class="cm">&amp;:: 子过程返回</span></pre>
+      <div class="callout warn"><b>两个 goto :eof 别混淆：</b>主流程里那个是"防止脚本掉进子过程"的挡板；子过程末尾那个是"返回调用处"。call 是"去而复返"，直接写标签名或 goto 是"有去无回"。</div>
+    </div>
+  </section>
+
+  <!-- ============ 互动4：errorlevel 分支实验室 ============ -->
+  <section class="section">
+    <h2>互动 4 · errorlevel 分支实验室（脚本怎么知道成败）</h2>
+    <p class="muted">每条命令结束都会留一个退出码：0 = 成功，非 0 = 出事。脚本的"智能"全靠它。点两个按钮，观察分支走向（阶段①动画讲过：这是命令留给脚本的"遗言"）。</p>
+    <div class="card">
+      <div class="opts" id="el-btns"></div>
+      <div class="term" style="margin-top:10px">
+        <div class="term-bar">
+          <span class="tdot" style="background:#f87171"></span><span class="tdot" style="background:#fbbf24"></span><span class="tdot" style="background:#34d399"></span>
+          <span class="ttitle">check.bat · 模拟运行</span>
+        </div>
+        <div class="term-body" id="el-out"></div>
+      </div>
+      <div class="explain" id="el-exp"></div>
+      <pre class="code" style="margin-top:10px">@echo off
+ping -n 1 %1 &gt;nul 2&gt;nul          <span class="cm">&amp;:: 静默 ping，丢掉输出只留退出码</span>
+if errorlevel 1 (
+    echo 【失败】%1 ping 不通，退出码 %errorlevel%
+    exit /b 1                     <span class="cm">&amp;:: 以失败码结束脚本</span>
+)
+echo 【成功】%1 在线，退出码 %errorlevel%
+</pre>
+      <table class="tbl" style="margin-top:8px">
+        <thead><tr><th>写法</th><th>含义</th><th>备注</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">if errorlevel 1</code></td><td>退出码 ≥ 1 时成立</td><td>老写法，兼容一切 Windows；注意是"≥"</td></tr>
+          <tr><td><code class="inline">if %errorlevel%==0</code></td><td>退出码恰好等于 0</td><td>现代写法，要用延迟展开的场景记得 <code class="inline">!errorlevel!</code></td></tr>
+          <tr><td><code class="inline">命令A &amp;&amp; 命令B</code></td><td>A 成功才执行 B</td><td>一行式分支：<code class="inline">ping 主机 &gt;nul &amp;&amp; echo 在线 || echo 失联</code></td></tr>
+          <tr><td><code class="inline">exit /b 1</code></td><td>脚本以此码结束</td><td>调用方拿到 1 就知道你失败了——脚本的"礼貌"</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 打卡清单 ============ -->
+  <section class="section">
+    <div class="card check">
+      <h3>✅ 阶段⑦ 打卡清单（勾满 6 项才算通关）</h3>
+      <label><input type="checkbox" id="s7-1" data-persist> 看完《延迟变量的一生》，并亲手复现 count=0 的 bug 再修好它</label>
+      <label><input type="checkbox" id="s7-2" data-persist> 用 <code class="inline">for /L</code> 写 1 加到 100 的求和脚本（答案 5050）</label>
+      <label><input type="checkbox" id="s7-3" data-persist> 用 <code class="inline">for /F</code> 逐行读一个 txt 并在行前加序号</label>
+      <label><input type="checkbox" id="s7-4" data-persist> 用 <code class="inline">set /a</code> + 字符串截取做出"取文件名前 3 个字符"的小工具</label>
+      <label><input type="checkbox" id="s7-5" data-persist> 写一个 greet.bat：<code class="inline">%~dp0</code> 定位自己、<code class="inline">%1</code> 收名字、call 子过程打招呼</label>
+      <label><input type="checkbox" id="s7-6" data-persist> 给任意脚本加上 errorlevel 判断和 <code class="inline">exit /b</code>，跑通成功/失败两条分支</label>
+    </div>
+  </section>
+
+  <!-- ============ 动手任务 + 资源 ============ -->
+  <section class="section">
+    <div class="grid g2">
+      <div class="card">
+        <h3>🛠 动手任务（回到真电脑）</h3>
+        <p><b>任务：写 backup-numbered.bat</b>——每次运行都把 <code class="inline">C:\练习\重要</code> 打包备份成带序号的副本。</p>
+        <pre class="code">@echo off
+setlocal enabledelayedexpansion
+if not exist "%~dp0备份" md "%~dp0备份"
+set /a n=1
+:number
+if exist "%~dp0备份\backup-!n!.zip" (
+    set /a n+=1
+    goto :number
+)
+tar -a -c -f "%~dp0备份\backup-!n!.zip" "%USERPROFILE%\Documents\重要" 2&gt;nul
+if errorlevel 1 (echo 备份失败 &amp; exit /b 1)
+echo 已生成 备份\backup-!n!.zip ✓</pre>
+        <p class="muted" style="font-size:13px">考点全在这 20 行里：延迟展开、goto 循环找空位、%~dp0 便携路径、tar 打包（Win10+ 自带）、errorlevel 收尾。跑三次，应该得到 backup-1/2/3.zip。</p>
+      </div>
+      <div class="card">
+        <h3>📚 深入资源（全球最好的批处理资料）</h3>
+        <p><b>Robert van der Woude 的脚本百科</b>——1997 年至今持续更新的个人站，几百个批处理实例 + <a href="https://www.robvanderwoude.com/for.php" target="_blank" rel="noopener">FOR 命令圣经页</a> + 字符串技巧表，被全世界运维奉为圣经。冷门但封神。</p>
+        <p><b>批处理之家（bathome.net）</b>——中文圈最活跃的批处理论坛，"BAT 求助"板块大量真实案例，搜报错关键字常能直接捡到答案。</p>
+        <p><b>SS64 CMD 参考（ss64.com/nt）</b>——每个命令一页，标注哪些是内部命令，社区评价"比官方文档还好用"。</p>
+        <p><b>DosTips 论坛（ dostips.com）</b>——英文批处理深水区，变量延迟黑科技大多出自这里。</p>
+        <div class="callout ok"><b>通关标准：</b>不看教程能独立写出 backup-numbered.bat，并能解释清楚为什么第 8 行要用 !n! 而不是 %n%。</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="pager">
+    <a href="stage6.html">← 上一阶段：PowerShell 与脚本</a>
+    <a href="index.html">课程总览</a>
+    <a href="stage8.html">下一阶段：系统急救与安全 →</a>
+  </div>
+</main>
+
+<footer class="foot">阶段 ⑦ · 批处理进阶 · 命令行学院</footer>
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  /* ============ 互动1：for 全家实验室 ============ */
+  (function () {
+    var MODES = [
+      { n: 'FOR 普通列表', cmd: 'for %i in (苹果 香蕉 橘子) do echo 水果：%i',
+        out: ['水果：苹果', '水果：香蕉', '水果：橘子'],
+        tip: '<b>普通列表</b>：对括号里的每个元素跑一遍命令。元素也可以是通配符文件名（如 *.jpg），此时叫"文件遍历"。命令行里写 <code class="inline">%i</code>，bat 文件里要写 <code class="inline">%%i</code>。' },
+      { n: 'FOR /D 只遍历目录', cmd: 'for /d %i in (C:\\练习\\*) do echo 目录：%i',
+        out: ['目录：C:\\练习\\备份', '目录：C:\\练习\\照片', '目录：C:\\练习\\文档'],
+        tip: '<b>/D</b>：只匹配<b>目录</b>不匹配文件。配合通配符 <code class="inline">*</code> 可以列出某路径下所有一级子目录——"给每个项目文件夹都执行一次某命令"的标配。' },
+      { n: 'FOR /R 递归子目录', cmd: 'for /r C:\\练习 %i in (*.log) do echo 找到：%i',
+        out: ['找到：C:\\练习\\日志\\app.log', '找到：C:\\练习\\日志\\2026\\app-1018.log', '找到：C:\\练习\\备份\\logs\\install.log'],
+        tip: '<b>/R 根路径</b>：递归钻进所有子目录找文件。<code class="inline">for /r %i in (*.tmp) do @del "%i"</code> 一行全盘清 tmp——威力大，跑之前先 echo 看看会删什么。' },
+      { n: 'FOR /L 数字序列', cmd: 'for /L %i in (1,2,9) do echo 第 %i 步',
+        out: ['第 1 步', '第 3 步', '第 5 步', '第 7 步', '第 9 步'],
+        tip: '<b>/L</b>：(起点,步长,终点) 的数字循环，像 C 语言的 for(i=1; i&lt;=9; i+=2)。倒着数就写负步长 <code class="inline">(3,-1,1)</code>。' },
+      { n: 'FOR /F 解析文本', cmd: 'for /f "tokens=1-3 delims=," %a in (成绩.csv) do echo 姓名=%a 语文=%b 数学=%c',
+        out: ['姓名=张三 语文=92 数学=88', '姓名=李四 语文=79 数学=95'],
+        tip: '<b>/F</b>：把文件（或命令输出）当表格拆字段。tokens 指定取第几列，delims 指定分隔符，%a 起往后自动分配 %b %c…解析日志、CSV、<code class="inline">dir</code> 输出的神器。加 <code class="inline">"usebackq"</code> 可读带引号路径；<code class="inline">for /f %i in (\'命令\') do …</code> 直接解析命令输出。' }
+    ];
+    var btns = document.getElementById('fo-btns');
+    var cmdEl = document.getElementById('fo-cmd');
+    var outEl = document.getElementById('fo-out');
+    var expEl = document.getElementById('fo-exp');
+    MODES.forEach(function (m, i) {
+      var b = document.createElement('button');
+      b.className = 'opt';
+      b.type = 'button';
+      b.textContent = m.n;
+      b.addEventListener('click', function () {
+        btns.querySelectorAll('.opt').forEach(function (x) { x.classList.remove('correct'); });
+        b.classList.add('correct');
+        cmdEl.innerHTML = 'C:\\练习&gt; ' + esc(m.cmd);
+        outEl.innerHTML = m.out.map(function (l) { return '<div>' + esc(l) + '</div>'; }).join('');
+        expEl.innerHTML = m.tip;
+      });
+      btns.appendChild(b);
+    });
+  })();
+
+  /* ============ 互动2：字符串手术台 ============ */
+  (function () {
+    var V = 'abc-2026-report.txt';
+    var KNIVES = [
+      { n: '完整取值 %v%', code: 'set v=abc-2026-report.txt&echo %v%', out: 'abc-2026-report.txt', exp: '最普通的取值。注意 <code class="inline">set v=值</code> 等号两边<b>不要加空格</b>（空格会被算进值里，新手头号暗坑）。' },
+      { n: '截取前 3 位 %v:~0,3%', code: 'echo %v:~0,3%', out: 'abc', exp: '<b>~起点,长度</b>：从第 0 位开始截 3 个字符。做"按编号前缀分组"时常用。' },
+      { n: '截取后 4 位 %v:~-4%', code: 'echo %v:~-4%', out: '.txt', exp: '负数起点 = 从尾部数。<code class="inline">~-4</code> 是倒数第 4 个到结尾——不写长度就是"取到最后"。判断扩展名的土办法。' },
+      { n: '中间截取 %v:~4,4%', code: 'echo %v:~4,4%', out: '2026', exp: '从第 4 位起截 4 位，正好把年份抠出来。位置从 0 数起，动手数一数 a-b-c---→0,1,2,3。' },
+      { n: '替换 - 为 _ %v:-=_%', code: 'echo %v:-=_%', out: 'abc_2026_report.txt', exp: '<b>~旧=新</b>：把变量里的旧串全换成新串（区分大小写）。想把文件名里的空格换成下划线？<code class="inline">ren "%f" "%f: =_%"</code> 一行搞定。' },
+      { n: '拼接 %v%-backup', code: 'echo %v%-backup', out: 'abc-2026-report.txt-backup', exp: '拼接不需要任何符号，写在一起就是拼。生成"原文件名+后缀"的新名字就这么简单。' }
+    ];
+    var btns = document.getElementById('st-btns');
+    var outEl = document.getElementById('st-out');
+    var expEl = document.getElementById('st-exp');
+    KNIVES.forEach(function (k) {
+      var b = document.createElement('button');
+      b.className = 'opt';
+      b.type = 'button';
+      b.textContent = k.n;
+      b.addEventListener('click', function () {
+        outEl.innerHTML = '<div><span class="pr">C:\\练习&gt;</span> ' + esc(k.code) + '</div><div>' + esc(k.out) + '</div>';
+        expEl.innerHTML = '<b> ' + k.n.split(' ')[1] + '</b> —— ' + k.exp;
+      });
+      btns.appendChild(b);
+    });
+  })();
+
+  /* ============ 互动3：参数与子过程 ============ */
+  (function () {
+    var ITEMS = [
+      { t: '%1、%2…%9 —— 接收参数', code: '@echo off\necho 第一个参数：%1\necho 第二个参数：%2', exp: '运行 <b>greet.bat 小明 3</b> 时，%1 = 小明，%2 = 3。超过 9 个用 <code class="inline">shift</code> 把参数整体左移再接一轮。%0 是脚本自己的名字。' },
+      { t: '%~1 —— 去掉引号', code: 'echo 收到：%~1', exp: '用户可能写 <b>greet.bat "小明"</b>，%~1 自动把引号剥掉。凡是要把参数拼进路径的，一律用 ~ 版本防引号套引号。' },
+      { t: '%~dp0 —— 脚本所在目录（灵魂）', code: 'cd /d %~dp0\necho 我住在：%~dp0', exp: '<b>d</b>=盘符，<b>p</b>=路径，<b>0</b>=脚本自己。<code class="inline">%~dp0</code> 让脚本永远能找到自己旁边的文件——哪怕快捷方式从天南海北启动它。绿色便携脚本的标配第一行：<code class="inline">cd /d %~dp0</code>。' },
+      { t: '%~f1 / %~n1 / %~x1 —— 拆路径', code: 'echo 全路径:%~f1\necho 文件名:%~n1  扩展名:%~x1', exp: '传进一个 C:\\日志\\app.log，%~f1 补全成绝对路径，%~n1 抠出 app，%~x1 抠出 .log。处理"拖进来的文件"时是三件套。' }
+    ];
+    var src = document.getElementById('pa-src');
+    var title = document.getElementById('pa-title');
+    var desc = document.getElementById('pa-desc');
+    var code = document.getElementById('pa-code');
+    ITEMS.forEach(function (it, i) {
+      var d = document.createElement('div');
+      d.className = 'anat';
+      d.textContent = it.t;
+      d.addEventListener('click', function () {
+        src.querySelectorAll('.anat').forEach(function (x) { x.classList.remove('on'); });
+        d.classList.add('on');
+        title.textContent = it.t;
+        desc.innerHTML = it.exp;
+        code.hidden = false;
+        code.innerHTML = it.code.split('\n').map(function (l) {
+          return '<span class="ln">' + esc(l) + '</span>';
+        }).join('');
+      });
+      src.appendChild(d);
+    });
+  })();
+
+  /* ============ 互动4：errorlevel 分支实验室 ============ */
+  (function () {
+    var CASES = [
+      { n: '▶ ping 网关 192.168.1.1（在线）', out: [
+        'C:\\练习&gt; ping -n 1 192.168.1.1 &gt;nul 2&gt;nul',
+        'C:\\练习&gt; if errorlevel 1 (…分支判断…)',
+        '【成功】192.168.1.1 在线，退出码 0',
+        '→ if errorlevel 1 不成立，走成功分支'
+      ], exp: '退出码 0，<code class="inline">if errorlevel 1</code>（≥1 才成立）为假 → 打印【成功】。脚本继续往下跑。' },
+      { n: '▶ ping 10.255.255.99（不存在的主机）', out: [
+        'C:\\练习&gt; ping -n 1 10.255.255.99 &gt;nul 2&gt;nul',
+        'C:\\练习&gt; if errorlevel 1 (…分支判断…)',
+        '【失败】10.255.255.99 ping 不通，退出码 1',
+        '→ exit /b 1，脚本以失败状态结束'
+      ], exp: '退出码 1 → 失败分支 + <code class="inline">exit /b 1</code>。别小看这个 1：别的脚本/计划任务调用你的脚本时，就靠它判断"到底成没成"。' }
+    ];
+    var btns = document.getElementById('el-btns');
+    var outEl = document.getElementById('el-out');
+    var expEl = document.getElementById('el-exp');
+    CASES.forEach(function (c) {
+      var b = document.createElement('button');
+      b.className = 'opt';
+      b.type = 'button';
+      b.textContent = c.n;
+      b.addEventListener('click', function () {
+        outEl.innerHTML = c.out.map(function (l, i) {
+          var cls = i === 0 || i === 1 ? 'pr' : (l.indexOf('【成功】') === 0 ? 'ok' : (l.indexOf('【失败】') === 0 ? 'err' : 'cm'));
+          return '<div class="' + cls + '">' + l + '</div>';
+        }).join('');
+        expEl.innerHTML = c.exp;
+      });
+      btns.appendChild(b);
+    });
+  })();
+})();
+</script>
+
+</body>
+</html>

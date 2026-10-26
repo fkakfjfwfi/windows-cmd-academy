@@ -31,6 +31,7 @@
       '<button class="pbtn" data-a="prev" type="button" title="上一场景">⏮</button>' +
       '<button class="pbtn" data-a="next" type="button" title="下一场景">⏭</button>' +
       '<button class="pbtn spd" data-a="speed" type="button" title="播放速度">1×</button>' +
+      '<button class="pbtn snd" data-a="sound" type="button" title="语音讲解开关（朗读字幕）">🔊</button>' +
       '<div class="tl" title="点击跳到任意位置"><div class="fill"></div><div class="dots"></div></div>' +
       '<span class="time">0:00 / ' + fmt(total) + '</span>' +
       '<span class="scene-lb"></span>';
@@ -44,8 +45,48 @@
       sceneLb: chrome.querySelector('.scene-lb'),
       play: chrome.querySelector('[data-a="play"]'),
       spd: chrome.querySelector('.spd'),
+      snd: chrome.querySelector('.snd'),
       tl: chrome.querySelector('.tl')
     };
+    /* ---- 语音讲解（TTS）：朗读当前场景字幕，零音频文件依赖 ---- */
+    var TTS = (function () {
+      var supported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+      var on = true, voice = null;
+      try { on = localStorage.getItem('cmdAcademyTTS') !== 'off'; } catch (e) {}
+      if (!supported) { if (el.snd) el.snd.style.display = 'none'; return { on: false, say: function () {}, paint: function () {} }; }
+
+      function pick() {
+        var vs = window.speechSynthesis.getVoices();
+        if (!vs || !vs.length) return;
+        var zh = vs.filter(function (v) { return /^zh([-_]|$)/i.test(v.lang); });
+        /* 优先本地中文语音（离线稳），其次任意中文，最后留空让浏览器默认 */
+        voice = zh.filter(function (v) { return v.localService; })[0] || zh[0] || null;
+      }
+      pick();
+      window.speechSynthesis.onvoiceschanged = pick;
+
+      function say(text) {
+        window.speechSynthesis.cancel();
+        if (!on || !text) return;
+        var u = new window.SpeechSynthesisUtterance(text);
+        u.lang = 'zh-CN';
+        if (voice) u.voice = voice;
+        u.rate = 1.05;
+        u.pitch = 1;
+        window.speechSynthesis.speak(u);
+      }
+      function paint() { if (el.snd) el.snd.textContent = on ? '🔊' : '🔇'; }
+      function toggle() {
+        on = !on;
+        try { localStorage.setItem('cmdAcademyTTS', on ? 'on' : 'off'); } catch (e) {}
+        paint();
+        if (on && cur >= 0) say(scenes[cur].cap);
+        else window.speechSynthesis.cancel();
+      }
+      paint();
+      window.addEventListener('beforeunload', function () { window.speechSynthesis.cancel(); });
+      return { on: on, say: say, toggle: toggle };
+    })();
     scenes.forEach(function (s, i) {
       var d = document.createElement('span');
       d.className = 'dot';
@@ -76,7 +117,7 @@
       while (i + 1 < scenes.length && starts[i + 1] <= time) i++;
       return i;
     }
-    function apply(i) {
+    function apply(i, silent) {
       cur = i;
       base();
       void theater.offsetWidth; /* 强制回流，保证 CSS 动画能重新触发 */
@@ -97,6 +138,7 @@
       }
       if (scenes[i].a) scenes[i].a(theater);
       cap.textContent = scenes[i].cap;
+      TTS.say(silent ? null : scenes[i].cap); /* 语音讲解：海报帧静音，播放/跳转时朗读字幕 */
       el.sceneLb.textContent = '场景 ' + (i + 1) + '/' + scenes.length;
       paint();
     }
@@ -117,6 +159,7 @@
         raf = requestAnimationFrame(tick);
       } else {
         cancelAnimationFrame(raf);
+        TTS.say(null); /* 暂停时停止朗读 */
       }
     }
     function tick(now) {
@@ -127,6 +170,7 @@
         t = total;
         paint();
         ended = true;
+        TTS.say(null); /* 播完停止朗读 */
         setPlaying(false);
         cap.textContent = '本集完 ✅ —— 往下滚动，把刚才看到的亲手做一遍';
         cover.querySelector('.cover-play').textContent = '⟲';
@@ -164,6 +208,7 @@
       else if (a === 'prev') seek(starts[Math.max(0, (cur === -1 ? 0 : cur) - 1)]);
       else if (a === 'next') seek(starts[Math.min(scenes.length - 1, (cur === -1 ? 0 : cur) + 1)]);
       else if (a === 'speed') { speedIdx = (speedIdx + 1) % SPEEDS.length; el.spd.textContent = SPEEDS[speedIdx] + '×'; }
+      else if (a === 'sound') { TTS.toggle(); }
     });
     cover.addEventListener('click', play);
     el.tl.addEventListener('click', function (e) {
@@ -180,7 +225,7 @@
       }
     });
 
-    apply(0); /* 海报帧：先摆好第一场景画面 */
+    apply(0, true); /* 海报帧：先摆好第一场景画面（不出声） */
   }
   window.LessonPlayer = LessonPlayer;
 })();

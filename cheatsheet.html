@@ -12,14 +12,18 @@
   <div class="bar">
     <span class="brand"><span class="logo">&gt;_</span>命令行学院</span>
     <nav class="nav">
-      <a href="index.html">课程总览</a>
-      <a href="stage1.html">① 终端入门</a>
-      <a href="stage2.html">② 文件与目录</a>
-      <a href="stage3.html">③ 文本与管道</a>
-      <a href="stage4.html">④ 网络诊断</a>
-      <a href="stage5.html">⑤ 系统管理</a>
-      <a href="stage6.html">⑥ PowerShell 与脚本</a>
-      <a href="cheatsheet.html">⌨ 速查表</a>
+      <a href="index.html">总览</a>
+      <a href="stage1.html">① 终端</a>
+      <a href="stage2.html">② 文件</a>
+      <a href="stage3.html">③ 管道</a>
+      <a href="stage4.html">④ 网络</a>
+      <a href="stage5.html">⑤ 系统</a>
+      <a href="stage6.html">⑥ PowerShell</a>
+      <a href="stage7.html">⑦ 批处理</a>
+      <a href="stage8.html">⑧ 急救安全</a>
+      <a href="stage9.html">⑨ 进阶</a>
+      <a href="projects.html">🎯 实战营</a>
+      <a href="cheatsheet.html">⌨ 速查</a>
     </nav>
   </div>
 </header>
@@ -27,14 +31,14 @@
 <main class="wrap">
 
   <section class="hero" style="padding:30px 32px">
-    <span class="tag">随查随用 · 全课程 100+ 条命令一页收齐</span>
+    <span class="tag">随查随用 · 全课程 180+ 条命令与写法一页收齐</span>
     <h1 style="font-size:24px">终极速查表</h1>
-    <p class="lead">六个阶段学过的命令全在这里。顶部搜索框<b>边打字边过滤</b>；点「🖨 打印」可直接打印（自动去掉导航等杂物），贴在显示器旁边当字典用。</p>
+    <p class="lead">九个阶段 + 实战营的命令全在这里。顶部搜索框<b>边打字边过滤</b>；点「🖨 打印」可直接打印（自动去掉导航等杂物），贴在显示器旁边当字典用。</p>
   </section>
 
   <!-- 吸顶搜索行（打印时自动隐藏） -->
   <div class="filter-row noprint">
-    <input id="q" type="text" placeholder="🔍 输入关键词过滤，如：robocopy / 端口 / 进程 / 计划任务 …" autocomplete="off">
+    <input id="q" type="text" placeholder="🔍 输入关键词过滤，如：robocopy / 端口 / 进程 / 延迟展开 / icacls …" autocomplete="off">
   </div>
   <div class="noprint" style="display:flex;align-items:center;gap:10px;margin:0 0 6px;flex-wrap:wrap">
     <span class="muted" id="cnt" style="font-size:13px"></span>
@@ -51,9 +55,14 @@
     <a class="chip" href="#cs4">④ 进程与服务</a>
     <a class="chip" href="#cs5">⑤ 系统信息与维护</a>
     <a class="chip" href="#cs6">⑥ 计划任务与环境变量</a>
-    <a class="chip" href="#cs7">⑦ winget 装机</a>
-    <a class="chip" href="#cs8">⑧ CMD ↔ PowerShell</a>
-    <a class="chip" href="#cs9">⑨ 快捷键与技巧</a>
+    <a class="chip" href="#cs7">⑦ 批处理专用</a>
+    <a class="chip" href="#cs8">⑧ 急救与安全</a>
+    <a class="chip" href="#cs9">⑨ winget 装机</a>
+    <a class="chip" href="#cs10">⑩ CMD ↔ PowerShell</a>
+    <a class="chip" href="#cs11">⑪ 现代内置工具</a>
+    <a class="chip" href="#cs12">⑫ Sysinternals 工具箱</a>
+    <a class="chip" href="#cs13">⑬ 冷门宝藏</a>
+    <a class="chip" href="#cs14">⑭ 快捷键与技巧</a>
   </div>
 
   <!-- ============ ① 文件与目录 ============ -->
@@ -64,19 +73,24 @@
         <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
         <tbody>
           <tr><td><code class="inline">cd 目录</code></td><td>切换目录；<code class="inline">cd ..</code> 回上级，<code class="inline">cd /d D:\工具</code> 跨盘符</td><td><code class="inline">cd C:\Users\you\Desktop</code></td></tr>
-          <tr><td><code class="inline">dir</code></td><td>列目录内容；<code class="inline">/a</code> 含隐藏，<code class="inline">/o:s</code> 按大小排序，<code class="inline">/s</code> 含子目录，<code class="inline">/b</code> 只列名字</td><td><code class="inline">dir /a /o:s C:\下载</code></td></tr>
+          <tr><td><code class="inline">pushd / popd</code></td><td>跳转并记住来路 / 一秒跳回（目录栈，支持网络路径自动映射盘符）</td><td><code class="inline">pushd D:\项目 … popd</code></td></tr>
+          <tr><td><code class="inline">subst X: 目录</code></td><td>给深层目录发虚拟盘符；<code class="inline">subst X: /d</code> 删除（无需管理员）</td><td><code class="inline">subst W: C:\深层\嵌套\工作目录</code></td></tr>
+          <tr><td><code class="inline">dir</code></td><td>列目录内容；<code class="inline">/a</code> 含隐藏，<code class="inline">/o:s</code> 按大小，<code class="inline">/s</code> 含子目录，<code class="inline">/b</code> 只列名字</td><td><code class="inline">dir /a /o:s C:\下载</code></td></tr>
           <tr><td><code class="inline">tree /f</code></td><td>树状展示目录（/f 连文件一起）</td><td><code class="inline">tree /f C:\项目</code></td></tr>
           <tr><td><code class="inline">md / mkdir</code></td><td>新建目录（可一次建多级）</td><td><code class="inline">md C:\备份\2026\照片</code></td></tr>
-          <tr><td><code class="inline">rd /s /q</code></td><td>删整个目录树（/s 连内容，/q 免确认）；小心不可逆</td><td><code class="inline">rd /s /q C:\临时垃圾</code></td></tr>
+          <tr><td><code class="inline">rd /s /q</code></td><td>删整个目录树（/s 连内容，/q 免确认）；⚠ 不进回收站不可逆</td><td><code class="inline">rd /s /q C:\临时垃圾</code></td></tr>
           <tr><td><code class="inline">copy 源 目标</code></td><td>复制文件（不支持目录树）</td><td><code class="inline">copy 报告.docx D:\备份\</code></td></tr>
           <tr><td><code class="inline">xcopy /e /i</code></td><td>复制目录树（/e 含空目录，/i 目标当目录）</td><td><code class="inline">xcopy C:\网站 D:\备份\网站\ /e /i</code></td></tr>
-          <tr><td><code class="inline">robocopy 源 目标 /e</code></td><td>最强复制；/MIR 镜像（会删多余文件！）、/xo 只拷新文件、/mt:16 多线程、/r:2 /w:3 失败重试</td><td><code class="inline">robocopy "C:\我的 文件" D:\备份 /mir /r:2 /w:3</code></td></tr>
-          <tr><td><code class="inline">del /f /q 文件</code></td><td>删文件；<code class="inline">del *.tmp /s</code> 递归删一类。回收站都不进，慎用</td><td><code class="inline">del C:\日志\*.log /f /q</code></td></tr>
-          <tr><td><code class="inline">ren 旧 新</code></td><td>重命名（同目录内）</td><td><code class="inline">ren 报告-v1.docx 报告-final.docx</code></td></tr>
+          <tr><td><code class="inline">robocopy 源 目标 /e</code></td><td>最强复制；/MIR 镜像（会删多余文件！）、/xo 只拷新文件、/mt:16 多线程、/z 断点续传、/r:2 /w:3 重试；退出码 ≤7 都算成功</td><td><code class="inline">robocopy "C:\我的 文件" D:\备份 /mir /r:2 /w:3</code></td></tr>
+          <tr><td><code class="inline">forfiles</code></td><td>按条件批量处理文件：/D -30 三十天前、/S 递归、/C 命令</td><td><code class="inline">forfiles /p %TEMP% /d -30 /c "cmd /c del @path"</code></td></tr>
+          <tr><td><code class="inline">del /f /q 文件</code></td><td>删文件；<code class="inline">del *.tmp /s</code> 递归删一类。⚠ 不进回收站，慎用</td><td><code class="inline">del C:\日志\*.log /f /q</code></td></tr>
+          <tr><td><code class="inline">ren 旧 新</code></td><td>重命名（同目录内）；支持通配符批量改扩展名</td><td><code class="inline">ren *.jpeg *.jpg</code></td></tr>
           <tr><td><code class="inline">move 源 目标</code></td><td>移动 / 跨目录改名</td><td><code class="inline">move 散图\*.jpg D:\相册\</code></td></tr>
           <tr><td><code class="inline">type 文件</code></td><td>打印文本文件内容</td><td><code class="inline">type config.txt</code></td></tr>
-          <tr><td><code class="inline">attrib +h 文件</code></td><td>改属性：+h 隐藏 / -h 取消，+r 只读</td><td><code class="inline">attrib +h 密码本.txt</code></td></tr>
-          <tr><td><code class="inline">mklink</code></td><td>建符号链接 /d 目录链接 /j junction，需管理员</td><td><code class="inline">mklink /d D:\链接 C:\真实目录</code></td></tr>
+          <tr><td><code class="inline">attrib +h 文件</code></td><td>改属性：+h 隐藏 / -h 取消，+r 只读；/s 递归</td><td><code class="inline">attrib +h 密码本.txt</code></td></tr>
+          <tr><td><code class="inline">compact /compactos:always</code></td><td>NTFS 原生压缩省空间（C 盘营救第一狠招，性能几乎无损）</td><td><code class="inline">compact /compactos:query</code> 先查状态</td></tr>
+          <tr><td><code class="inline">defrag C: /o</code></td><td>碎片整理（/o 对 SSD 做优化重排而非碎片整理）</td><td><code class="inline">defrag C: /o</code></td></tr>
+          <tr><td><code class="inline">mklink /d /j</code></td><td>符号链接（/d）/ 目录联接（/j，无需管理员场景更宽松）；C 盘搬家四步法核心</td><td><code class="inline">mklink /j "C:\某软件" "D:\某软件"</code></td></tr>
           <tr><td>通配符</td><td><code class="inline">*</code> 任意长字符，<code class="inline">?</code> 恰好一个字符</td><td><code class="inline">dir 报告-*.docx</code> / <code class="inline">del ???.tmp</code></td></tr>
         </tbody>
       </table>
@@ -97,7 +111,8 @@
           <tr><td><code class="inline">2&gt;&amp;1</code></td><td>错误流合并进正常流</td><td><code class="inline">build.exe &gt; all.log 2&gt;&amp;1</code></td></tr>
           <tr><td><code class="inline">&gt;nul</code></td><td>丢弃输出（黑洞）；常配 <code class="inline">2&gt;nul</code></td><td><code class="inline">ping -n 1 主机 &gt;nul 2&gt;nul</code></td></tr>
           <tr><td><code class="inline">&lt; 文件</code></td><td>把文件内容当命令输入</td><td><code class="inline">sort &lt; 名单.txt</code></td></tr>
-          <tr><td><code class="inline">findstr "词"</code></td><td>按关键词筛行；/i 忽略大小写 /v 反选 /n 显示行号 /b 行首 /e 行尾 /c:"整个短语"</td><td><code class="inline">ipconfig /all | findstr /i "dns"</code></td></tr>
+          <tr><td><code class="inline">findstr "词"</code></td><td>按关键词筛行；/i 忽略大小写 /v 反选 /n 行号 /b 行首 /e 行尾 /c:"整个短语" /s 递归子目录</td><td><code class="inline">ipconfig /all | findstr /i "dns"</code></td></tr>
+          <tr><td><code class="inline">find /c /v ""</code></td><td>经典组合：统计行数（/c 计数，/v "" 反选空串=全要）</td><td><code class="inline">findstr ERROR app.log | find /c /v ""</code></td></tr>
           <tr><td><code class="inline">more</code></td><td>分页看长文本（空格翻页，Q 退出）</td><td><code class="inline">type 长日志.txt | more</code></td></tr>
           <tr><td><code class="inline">sort</code></td><td>排序；/r 反向</td><td><code class="inline">sort 成绩.txt</code></td></tr>
           <tr><td><code class="inline">fc 文件1 文件2</code></td><td>比较两个文件差异</td><td><code class="inline">fc 旧配置.txt 新配置.txt</code></td></tr>
@@ -124,6 +139,7 @@
           <tr><td><code class="inline">arp -a</code></td><td>看局域网内"IP ↔ MAC"邻居表</td><td><code class="inline">arp -a</code></td></tr>
           <tr><td><code class="inline">getmac</code></td><td>列出本机 MAC 地址</td><td><code class="inline">getmac /v</code></td></tr>
           <tr><td><code class="inline">curl 地址</code></td><td>发 HTTP 请求；-I 只看响应头，Win10 1803+ 自带</td><td><code class="inline">curl -I https://example.com</code></td></tr>
+          <tr><td><code class="inline">pktmon start --capture</code></td><td>Win10 2004+ 内置抓包；etl2pcap 转 Wireshark 格式</td><td><code class="inline">pktmon etl2pcap 抓包.etl -o 抓包.pcapng</code></td></tr>
           <tr><td><code class="inline">netsh wlan show profile</code></td><td>列出连过的 Wi-Fi；加 <code class="inline">name="名" key=clear</code> 看明文密码（需管理员）</td><td><code class="inline">netsh wlan show profile name="家里WiFi" key=clear</code></td></tr>
           <tr><td>排障顺序</td><td colspan="2">ping 网关 → ping 公网 IP → ping 域名 → 看 DNS；逐级缩小范围（阶段④决策树）</td></tr>
         </tbody>
@@ -160,13 +176,15 @@
         <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
         <tbody>
           <tr><td><code class="inline">systeminfo</code></td><td>一页看全：系统版本、内存、补丁、开机时间、网卡</td><td><code class="inline">systeminfo | findstr /i "内存 OS"</code></td></tr>
-          <tr><td><code class="inline">sfc /scannow</code></td><td>扫描修复系统文件（🔒 管理员）</td><td>系统文件损坏 / 蓝屏后先跑它</td></tr>
-          <tr><td><code class="inline">chkdsk D: /f</code></td><td>查修磁盘错误（🔒 系统盘要安排重启时修）</td><td><code class="inline">chkdsk D: /f</code></td></tr>
+          <tr><td><code class="inline">sfc /scannow</code></td><td>扫描修复系统文件（🔒 管理员）——但<b>必须先跑 DISM</b>，见第⑧节官方流程</td><td>系统文件损坏 / 蓝屏后先跑它</td></tr>
+          <tr><td><code class="inline">chkdsk D: /f</code></td><td>查修磁盘逻辑错误（🔒 系统盘要安排重启时修）；/r 深扫坏道（数小时，先备份再跑）</td><td><code class="inline">chkdsk D: /f</code></td></tr>
+          <tr><td><code class="inline">wmic diskdrive get model,status</code></td><td>硬盘健康速览：OK 正常 / Pred Fail = 立刻备份</td><td><code class="inline">wmic diskdrive get model,status</code></td></tr>
           <tr><td><code class="inline">driverquery</code></td><td>列驱动程序清单</td><td><code class="inline">driverquery | more</code></td></tr>
           <tr><td><code class="inline">powercfg /batteryreport</code></td><td>生成电池健康报告（笔记本，看实际容量 vs 设计容量）</td><td>报告在当前目录 battery-report.html</td></tr>
           <tr><td><code class="inline">powercfg /energy</code></td><td>60 秒能耗体检，揪出费电后台（🔒）</td><td><code class="inline">powercfg /energy</code></td></tr>
           <tr><td><code class="inline">cleanmgr</code></td><td>磁盘清理（/sagerun:1 一键清预设项）</td><td><code class="inline">cleanmgr /d C:</code></td></tr>
           <tr><td><code class="inline">dxdiag</code></td><td> DirectX 诊断：显卡 / 声卡 / 输入设备</td><td>排查游戏画面问题第一步</td></tr>
+          <tr><td><code class="inline">msinfo32</code></td><td>系统信息全景（硬件资源/组件/软件环境，图形界面）</td><td>Win+R <code class="inline">msinfo32</code></td></tr>
           <tr><td><code class="inline">ver / vol / hostname</code></td><td>系统版本 / 卷标序列号 / 计算机名，一条一个答案</td><td><code class="inline">ver</code></td></tr>
         </tbody>
       </table>
@@ -183,7 +201,7 @@
         <tbody>
           <tr><td><code class="inline">schtasks /create …</code></td><td>建计划任务；/sc daily|weekly|minute /st 时间 /tr 要跑的命令</td><td><code class="inline">schtasks /create /tn "夜间清理" /tr "C:\tools\清理.bat" /sc daily /st 23:30</code></td></tr>
           <tr><td><code class="inline">schtasks /query /tn 名</code></td><td>查任务状态（/v 详情，/fo list 好读）</td><td><code class="inline">schtasks /query /tn "夜间清理"</code></td></tr>
-          <tr><td><code class="inline">schtasks /run /tn 名</code></td><td>立即手动跑一次（测试用）</td><td>建完必跑一次验证</td></tr>
+          <tr><td><code class="inline">schtasks /run /tn 名</code></td><td>立即手动跑一次（测试用，建完必跑）</td><td><code class="inline">schtasks /run /tn "夜间清理"</code></td></tr>
           <tr><td><code class="inline">schtasks /end /tn 名</code></td><td>停掉正在跑的任务</td><td><code class="inline">schtasks /end /tn "夜间清理"</code></td></tr>
           <tr><td><code class="inline">schtasks /delete /tn 名 /f</code></td><td>删任务（/f 免确认）</td><td><code class="inline">schtasks /delete /tn "夜间清理" /f</code></td></tr>
         </tbody>
@@ -192,21 +210,106 @@
       <table class="tbl cheat">
         <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
         <tbody>
-          <tr><td><code class="inline">set 变量=值</code></td><td>临时设变量（只活在本窗口）</td><td><code class="inline">set PORT=8080</code></td></tr>
+          <tr><td><code class="inline">set 变量=值</code></td><td>临时设变量（只活在本窗口；等号两边别加空格）</td><td><code class="inline">set PORT=8080</code></td></tr>
           <tr><td><code class="inline">set</code></td><td>列出全部 / 按前缀筛（<code class="inline">set p</code>）</td><td><code class="inline">set path</code></td></tr>
           <tr><td><code class="inline">setx 变量 值</code></td><td>永久写注册表；<b>已开的窗口看不到，重开才生效</b>；改 PATH 谨慎（有合并截断坑）</td><td><code class="inline">setx JAVA_HOME "C:\jdk-21"</code></td></tr>
           <tr><td><code class="inline">echo %变量%</code></td><td>读变量；脚本里拼路径常用</td><td><code class="inline">cd %USERPROFILE%\Desktop</code></td></tr>
           <tr><td><code class="inline">where 程序名</code></td><td>看命令到底命中 PATH 里哪个 exe（"找不到命令"排查神器）</td><td><code class="inline">where python</code></td></tr>
           <tr><td><code class="inline">start 程序/文件</code></td><td>新窗口启动程序 / 用默认程序打开文件</td><td><code class="inline">start battery-report.html</code></td></tr>
-          <tr><td>常用变量</td><td colspan="2"><code class="inline">%USERPROFILE%</code> 家目录 · <code class="inline">%APPDATA%</code> 配置 · <code class="inline">%LOCALAPPDATA%</code> 缓存 · <code class="inline">%TEMP%</code> 临时 · <code class="inline">%COMPUTERNAME%</code> 电脑名 · <code class="inline">%DATE% %TIME%</code> 时间</td></tr>
+          <tr><td>常用变量</td><td colspan="2"><code class="inline">%USERPROFILE%</code> 家目录 · <code class="inline">%APPDATA%</code> 配置 · <code class="inline">%LOCALAPPDATA%</code> 缓存 · <code class="inline">%TEMP%</code> 临时 · <code class="inline">%COMPUTERNAME%</code> 电脑名 · <code class="inline">%DATE% %TIME%</code> 时间（日期截取格式随区域设置，用前先 echo 确认）</td></tr>
         </tbody>
       </table>
     </div>
   </section>
 
-  <!-- ============ ⑦ winget 装机 ============ -->
+  <!-- ============ ⑦ 批处理专用 ============ -->
   <section data-cheat id="cs7">
-    <h2>⑦ winget 装机</h2>
+    <h2>⑦ 批处理专用（bat 写作全套零件）</h2>
+    <div class="card">
+      <h3 style="margin-bottom:6px">for 五种形态（bat 里写 %%i，命令行手敲写 %i）</h3>
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">写法</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">for %i in (列表) do …</code></td><td>遍历列表 / 通配符文件</td><td><code class="inline">for %i in (*.jpg) do @echo %i</code></td></tr>
+          <tr><td><code class="inline">for /d %i in (路径\*) do …</code></td><td>只遍历目录</td><td><code class="inline">for /d %i in (C:\练习\*) do @echo %i</code></td></tr>
+          <tr><td><code class="inline">for /r 根 %i in (*.log) do …</code></td><td>递归钻子目录找文件</td><td><code class="inline">for /r %i in (*.tmp) do @del "%i"</code></td></tr>
+          <tr><td><code class="inline">for /l %i in (1,1,100) do …</code></td><td>数字循环（起点,步长,终点；负步长倒着数）</td><td><code class="inline">for /l %i in (1,2,9) do @echo %i</code></td></tr>
+          <tr><td><code class="inline">for /f "tokens=1-3 delims=," %a in (文件) do …</code></td><td>按分隔符拆字段解析文本；<code class="inline">%a</code> 起自动分配 %b %c…；<code class="inline">('命令')</code> 可直接解析命令输出</td><td><code class="inline">for /f "tokens=1 delims=," %a in (名单.csv) do @echo %a</code></td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin:12px 0 6px">变量与字符串（%var% 快照 / !var! 实时）</h3>
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">写法</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">setlocal enabledelayedexpansion</code></td><td>开启延迟展开（循环里要用变化值必开；附带不污染环境的副作用）</td><td>脚本头部标配</td></tr>
+          <tr><td><code class="inline">!var!</code></td><td>实时取值（%var% 是"读入行时"的快照——for 括号块整块读入，循环内 %var% 永远是旧值）</td><td><code class="inline">for … do (set /a n+=1 &amp; echo !n!)</code></td></tr>
+          <tr><td><code class="inline">set /a 算式</code></td><td>数学计算（+ - * / 及赋值连写）</td><td><code class="inline">set /a count+=1</code></td></tr>
+          <tr><td><code class="inline">%var:~起点,长度%</code></td><td>字符串截取（负数=从尾部数）</td><td><code class="inline">%v:~0,3%</code> / <code class="inline">%v:~-4%</code></td></tr>
+          <tr><td><code class="inline">%var:旧=新%</code></td><td>字符串全量替换（区分大小写）</td><td><code class="inline">ren "%f" "%f: =_%"</code>（空格换下划线）</td></tr>
+          <tr><td><code class="inline">%1 %~1 %~dp0</code></td><td>接收参数 / 去引号 / <b>脚本自己所在目录</b>（绿色便携脚本灵魂，第一行 <code class="inline">cd /d %~dp0</code>）</td><td><code class="inline">type "%~dp0config.txt"</code></td></tr>
+          <tr><td><code class="inline">%~f1 %~n1 %~x1</code></td><td>参数拆解：绝对路径 / 主名 / 扩展名（%%~xf 同理用于 for 变量）</td><td><code class="inline">ren "%%f" "照片-!n!.%%~xf"</code></td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin:12px 0 6px">流程控制</h3>
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">写法</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">if errorlevel 1</code></td><td>退出码 ≥1 成立（老写法）；现代写法 <code class="inline">if %errorlevel%==0</code>，延迟场景用 !errorlevel!</td><td><code class="inline">if errorlevel 1 (echo 失败 &amp; exit /b 1)</code></td></tr>
+          <tr><td><code class="inline">A &amp;&amp; B / A || B</code></td><td>A 成功才跑 B / A 失败才跑 B；&amp; 顺序执行</td><td><code class="inline">ping 主机 &gt;nul &amp;&amp; echo 在线 || echo 失联</code></td></tr>
+          <tr><td><code class="inline">call :标签 参数</code></td><td>调用子过程（去而复返）；直接 goto 是有去无回</td><td><code class="inline">call :say 你好</code></td></tr>
+          <tr><td><code class="inline">goto :eof</code></td><td>子过程返回 / 主流程防掉进子过程的挡板</td><td>子过程末尾标配</td></tr>
+          <tr><td><code class="inline">exit /b 码</code></td><td>脚本以此码结束（调用方靠它判断成败）</td><td><code class="inline">exit /b 1</code></td></tr>
+          <tr><td><code class="inline">choice /c YNC /m 提示</code></td><td>交互确认（退出码=选项序号）；<code class="inline">timeout /t 10 /nobreak</code> 纯等待</td><td>脚本危险操作前问一句</td></tr>
+          <tr><td>安全铁律</td><td colspan="2">删除/覆盖命令先 echo 演习；变量可能为空时先 <code class="inline">echo 命令 %var%</code> 看展开；del/rd 永远用引号包路径并检查多余空格</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ⑧ 急救与安全 ============ -->
+  <section data-cheat id="cs8">
+    <h2>⑧ 急救与安全（修复流程 / 权限 / 注册表 / 红线）</h2>
+    <div class="card">
+      <h3 style="margin-bottom:6px">系统文件修复：微软官方标准顺序（顺序不能反！）</h3>
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">命令（🔒 全部需管理员）</th><th style="width:33%">作用</th><th>示例 / 备注</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">dism /online /cleanup-image /checkhealth</code></td><td>秒速体检：看组件存储损坏标记（healthy / repairable / non-repairable）</td><td>第一步先看情况</td></tr>
+          <tr><td><code class="inline">dism /online /cleanup-image /restorehealth</code></td><td>从 Windows Update 拉完好组件修组件存储（5~20 分钟）——<b>SFC 的修复原料来自它</b></td><td>第二步换零件</td></tr>
+          <tr><td><code class="inline">sfc /scannow</code></td><td>用修好的组件存储逐一校验替换系统文件</td><td>第三步修文件；修不了的查 <code class="inline">C:\Windows\Logs\CBS\CBS.log</code> 搜 "[SR]"</td></tr>
+          <tr><td><code class="inline">reagentc /info</code></td><td>查 WinRE 恢复环境状态；进不去系统时强断电 ×2~3 自动进 WinRE</td><td>WinRE 里修引导见下行</td></tr>
+          <tr><td><code class="inline">bootrec /fixmbr、/fixboot、/rebuildbcd</code></td><td>修主引导 / 重写引导扇区 / 重建启动菜单（在 WinRE 命令行里跑）</td><td>0xc000000e、双系统菜单丢失</td></tr>
+          <tr><td><code class="inline">dism /image:C:\ /cleanup-image /restorehealth</code></td><td>离线修复（WinRE 里系统盘可能换盘符，先 dir 认路）</td><td>系统进不去时的修复姿势</td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin:12px 0 6px">权限抢救（"拒绝访问"三连，顺序固定）</h3>
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">takeown /f "路径" /r /d y</code></td><td>① 抢所有权（递归，/d y 自动应答）</td><td>旧系统盘/他人文件第一步</td></tr>
+          <tr><td><code class="inline">icacls "路径" /grant %username%:F /t</code></td><td>② 授予完全控制（icacls 已取代过时的 cacls）</td><td>做完这步就能打开了</td></tr>
+          <tr><td><code class="inline">icacls "路径" /reset /t /q</code></td><td>③ 丢弃手工作业、恢复继承（懂行收尾）</td><td>别留一堆个体权限</td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin:12px 0 6px">注册表 reg 四板斧 + 加密与日志</h3>
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">reg query 键 /v 值名</code></td><td>查（HKCU 免管理员 / HKLM 需管理员）</td><td><code class="inline">reg query "HKCU\Software\某键" /v Version</code></td></tr>
+          <tr><td><code class="inline">reg add 键 /v 名 /t REG_SZ /d 数据 /f</code></td><td>写（REG_SZ 字符串 / REG_DWORD 数字最常用）</td><td>网上"优化开关"教程的本体</td></tr>
+          <tr><td><code class="inline">reg export 键 文件.reg</code></td><td>备份（双击即可还原）——<b>动任何键之前必做</b></td><td>注册表没有 Ctrl+Z</td></tr>
+          <tr><td><code class="inline">reg delete 键 /v 名 /f</code></td><td>删值；不带 /v 删整键（更危险）</td><td>删 HKLM 前先 export + query</td></tr>
+          <tr><td><code class="inline">manage-bde -status</code></td><td>BitLocker 加密状态；<code class="inline">-unlock 盘符 -RecoveryPassword 密钥</code> 解锁</td><td>🔒 管理员</td></tr>
+          <tr><td><code class="inline">wevtutil qe System /c:5 /rd:true /f:text</code></td><td>命令行读事件日志（最近 5 条倒序文本）；<code class="inline">eventvwr</code> 开图形版</td><td>蓝屏排查：筛"错误"看时间点前后来源</td></tr>
+          <tr><td>🚨 红线命令</td><td colspan="2"><code class="inline">format 盘符</code>（格盘）、<code class="inline">diskpart → clean</code>（抹分区表）、<code class="inline">cipher /w:C:\</code>（覆写空闲空间）、<code class="inline">vssadmin delete shadows /all</code>（灭还原点）、<code class="inline">bcdedit /set</code>（改引导）——用前必备份/核对盘符，见阶段⑧红线清单</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ⑨ winget ============ -->
+  <section data-cheat id="cs9">
+    <h2>⑨ winget 装机</h2>
     <div class="card">
       <table class="tbl cheat">
         <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
@@ -223,9 +326,9 @@
     </div>
   </section>
 
-  <!-- ============ ⑧ CMD ↔ PowerShell ============ -->
-  <section data-cheat id="cs8">
-    <h2>⑧ CMD ↔ PowerShell 对照</h2>
+  <!-- ============ ⑩ CMD ↔ PowerShell ============ -->
+  <section data-cheat id="cs10">
+    <h2>⑩ CMD ↔ PowerShell 对照</h2>
     <div class="card">
       <table class="tbl cheat">
         <thead><tr><th style="width:30%">任务</th><th style="width:33%">CMD 写法</th><th>PowerShell 写法</th></tr></thead>
@@ -243,32 +346,96 @@
           <tr><td>看服务</td><td><code class="inline">sc query 服务名</code></td><td><code class="inline">Get-Service 服务名</code></td></tr>
           <tr><td>网络命令</td><td colspan="2">ping / ipconfig / tracert / netstat 在两边都照用（PowerShell 兼容外部程序）</td></tr>
           <tr><td>输出到文件</td><td><code class="inline">dir &gt; 清单.txt</code></td><td><code class="inline">Get-ChildItem | Out-File 清单.txt</code>（<code class="inline">&gt;</code> 也通）</td></tr>
-          <tr><td>对象管道</td><td>只有文本，靠 findstr/sort 硬切</td><td><code class="inline">Get-Process | Sort-Object CPU -Descending | Select-Object -First 5</code>——排序筛选的是"对象"不是字符串</td></tr>
+          <tr><td>对象管道五件套</td><td>只有文本，靠 findstr/sort 硬切</td><td><code class="inline">Get-Process | Where-Object {$_.CPU -gt 100} | Sort-Object CPU -Descending | Select-Object -First 5 | Measure-Object</code>——Where 筛 / Sort 排 / Select 取 / Measure 统计 / Get-Member 看属性（<code class="inline">$_</code> 即当前对象）</td></tr>
+          <tr><td>查硬件</td><td><code class="inline">wmic logicaldisk get caption,freespace</code></td><td><code class="inline">Get-CimInstance Win32_LogicalDisk</code>（CIM 取代 wmic）</td></tr>
         </tbody>
       </table>
       <div class="callout info" style="margin-top:8px">在 PowerShell 里 CMD 命令几乎全能跑；反之不行。所以日常用 PowerShell 不亏，老脚本继续给 CMD。</div>
     </div>
   </section>
 
-  <!-- ============ ⑨ 快捷键与技巧 ============ -->
-  <section data-cheat id="cs9">
-    <h2>⑨ 快捷键与技巧</h2>
+  <!-- ============ ⑪ 现代内置工具 ============ -->
+  <section data-cheat id="cs11">
+    <h2>⑪ 现代内置工具（Win10+ 自带，不用装）</h2>
+    <div class="card">
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">ssh user@主机</code></td><td>远程登录 Linux 服务器（OpenSSH 客户端，Win10 1809+）；-p 指定端口；config 文件可给主机起别名</td><td><code class="inline">ssh -p 2222 pi@192.168.1.20</code></td></tr>
+          <tr><td><code class="inline">scp 文件 user@host:/tmp</code></td><td>远程拷文件</td><td><code class="inline">scp 报告.pdf admin@10.0.0.5:/home/admin/</code></td></tr>
+          <tr><td><code class="inline">tar -a -c -f 包.zip 目录</code></td><td>打包（-a 按扩展名自动选 zip/tgz）；<code class="inline">tar -xf 包</code> 万能解包</td><td><code class="inline">tar -a -c -f 备份.zip C:\资料</code></td></tr>
+          <tr><td><code class="inline">curl -I 网址</code></td><td>看响应头（极简测活）；<code class="inline">-O</code> 下载保留名、<code class="inline">-o 名</code> 下载改名</td><td><code class="inline">curl -I https://example.com | findstr HTTP</code></td></tr>
+          <tr><td>Windows Terminal</td><td>Alt+Shift+D 智能分屏；Ctrl+Shift+数字 按配置开标签；Ctrl+, 进设置（profiles.defaults 一次管所有配置）</td><td><code class="inline">wt -p "CMD" -d C:\tools</code> 命令行直达</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ⑫ Sysinternals ============ -->
+  <section data-cheat id="cs12">
+    <h2>⑫ Sysinternals 工具箱（微软官方免费，解压即用）</h2>
+    <div class="card">
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">工具</th><th style="width:33%">干什么</th><th>示例 / 场景</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">psexec -s -i cmd</code></td><td>以 SYSTEM 身份开进程（比管理员更高）</td><td>排查服务权限问题、开 SYSTEM 终端</td></tr>
+          <tr><td><code class="inline">procdump -e -ma 进程名</code></td><td>程序崩溃瞬间抓转储（-e 崩溃触发，-ma 全内存）</td><td>给开发者交"崩溃现场"</td></tr>
+          <tr><td><code class="inline">psping 主机:443</code></td><td>测端口连通性与延迟</td><td>ping 通但服务连不上时的下钻</td></tr>
+          <tr><td><code class="inline">accesschk 对象</code></td><td>查"谁能访问什么"（文件/注册表/服务）</td><td>icacls 讲不清时的权威答案</td></tr>
+          <tr><td><code class="inline">streams 文件</code></td><td>查 NTFS 附加数据流（网上下载文件的拦截标记藏身处）</td><td><code class="inline">streams -d 文件</code> 删除标记</td></tr>
+          <tr><td><code class="inline">sigcheck 可疑.exe</code></td><td>查数字签名与 VirusTotal 状态</td><td>鉴别伪装 exe</td></tr>
+          <tr><td><code class="inline">du -nobanner C:\</code></td><td>统计目录占用（C 盘找"谁最肥"）</td><td>配 <code class="inline">| sort /r</code> 从大到小</td></tr>
+          <tr><td>获取方式</td><td colspan="2">微软商店搜 Sysinternals Suite，或 live.sysinternals.com 直接下；学习页 learn.microsoft.com/sysinternals</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ⑬ 冷门宝藏 ============ -->
+  <section data-cheat id="cs13">
+    <h2>⑬ 冷门宝藏（见过一次就离不开）</h2>
+    <div class="card">
+      <table class="tbl cheat">
+        <thead><tr><th style="width:32%">命令</th><th style="width:33%">作用</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">doskey 宏=命令 $*</code></td><td>自定义短命令（会话内有效；写进 AutoRun 注册表可永久）</td><td><code class="inline">doskey ll=dir /o:n $*</code></td></tr>
+          <tr><td><code class="inline">doskey /history</code></td><td>列出本次会话历史（&gt; 导出成文档）</td><td><code class="inline">doskey /history &gt; 操作记录.txt</code></td></tr>
+          <tr><td><code class="inline">title 窗口名</code></td><td>改窗口标题（多窗口救命细节）</td><td><code class="inline">title 备份任务 · 不要关</code></td></tr>
+          <tr><td><code class="inline">color 0A</code></td><td>改配色（背景+前景）；不带参数还原</td><td><code class="inline">color /?</code> 看色表</td></tr>
+          <tr><td><code class="inline">choice /c YN /m 提示</code></td><td>脚本交互确认；<code class="inline">timeout /t 10 /nobreak</code> 定时等待</td><td>危险操作前问一句</td></tr>
+          <tr><td><code class="inline">msg 用户名 "内容"</code></td><td>给本机/局域网会话弹消息框</td><td><code class="inline">msg %username% "该喝水了"</code></td></tr>
+          <tr><td><code class="inline">eventcreate /l APPLICATION /so 来源 /id 100 /d "内容"</code></td><td>脚本往事件日志留痕（配 wevtutil 查）</td><td>脚本运行历史官方存档</td></tr>
+          <tr><td><code class="inline">tzutil /g / /s "UTC"</code></td><td>查 / 切时区</td><td>跨时区脚本对时</td></tr>
+          <tr><td><code class="inline">whoami /groups | findstr "12288"</code></td><td>判断当前是否管理员提权（SID 12288 = Administrators）</td><td><code class="inline">whoami /user</code> 看账户</td></tr>
+          <tr><td><code class="inline">openfiles /query</code></td><td>列出共享中被打开的文件（先 /local on 重启生效）</td><td>"文件删不掉"元凶抓捕器</td></tr>
+          <tr><td><code class="inline">freedisk C:</code></td><td>查剩余空间（脚本里做"低于阈值自动清理"）</td><td><code class="inline">freedisk C:</code></td></tr>
+          <tr><td><code class="inline">wusa /uninstall /kb:编号 /quiet</code></td><td>精准卸载某个 Windows 更新（配 <code class="inline">wmic qfe list</code> 查编号）</td><td>补丁搞坏系统的后悔药</td></tr>
+          <tr><td><code class="inline">gpupdate /force</code></td><td>立即刷新组策略；<code class="inline">gpresult /r</code> 看生效策略</td><td>改完策略不等注销</td></tr>
+          <tr><td><code class="inline">assoc / ftype</code></td><td>查改扩展名关联（assoc .md 看类型 → ftype 类型 看打开方式）</td><td>双击打开方式被劫持时的修法</td></tr>
+          <tr><td><code class="inline">iexpress</code></td><td>把脚本打包成自解压 exe（系统自带向导）</td><td>给不会命令行的人发工具</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ⑭ 快捷键与技巧 ============ -->
+  <section data-cheat id="cs14">
+    <h2>⑭ 快捷键与技巧</h2>
     <div class="card">
       <table class="tbl cheat">
         <thead><tr><th style="width:32%">按键 / 写法</th><th style="width:33%">作用</th><th>备注</th></tr></thead>
         <tbody>
           <tr><td><span class="kbd">Tab</span></td><td>自动补全文件 / 目录 / 命令名</td><td>最值得养成习惯的一个，少打字还防拼错</td></tr>
           <tr><td><span class="kbd">↑</span> <span class="kbd">↓</span></td><td>翻历史命令</td><td>改一改重跑，不用重敲</td></tr>
-          <tr><td><span class="kbd">F7</span></td><td>弹出历史命令菜单，方向键选</td><td>找十几条前的那条特别好使</td></tr>
+          <tr><td><span class="kbd">F7</span> / <span class="kbd">F9</span></td><td>F7 弹历史菜单；F9 按编号重放</td><td>找十几条前的那条特别好使</td></tr>
           <tr><td><span class="kbd">Esc</span> / <span class="kbd">Ctrl+C</span></td><td>清空当前行 / 强停正在跑的命令</td><td>ping -t 卡住就 Ctrl+C</td></tr>
           <tr><td>右键</td><td>老控制台里 = 粘贴（或选中即复制）</td><td>属性里开「快速编辑模式」更顺手</td></tr>
           <tr><td>拖文件进窗口</td><td>自动填入完整路径（含引号）</td><td>路径带空格不怕忘加引号</td></tr>
-          <tr><td><code class="inline">doskey /history</code></td><td>列出本次会话历史</td><td>PowerShell 里用 <code class="inline">history</code></td></tr>
           <tr><td><code class="inline">命令 /?</code></td><td>查任何命令的官方帮助</td><td>比背参数靠谱，Windows 命令通用</td></tr>
-          <tr><td><code class="inline">命令1 &amp;&amp; 命令2</code></td><td>前一个成功才执行后一个</td><td>对应还有 <code class="inline">||</code>（失败才执行）和 <code class="inline">&amp;</code>（顺序执行）</td></tr>
           <tr><td><span class="kbd">Win</span>+<span class="kbd">X</span> → A</td><td>一键开管理员终端</td><td>跑 sfc / chkdsk / sc 前先提档</td></tr>
           <tr><td>管理员怎么认</td><td>标题栏写「管理员: 命令提示符」才是；<code class="inline">net session</code> 不报错也是</td><td>普通窗口跑管理命令只会报「拒绝访问」</td></tr>
           <tr><td>PowerShell 三板斧</td><td colspan="2"><code class="inline">Get-Help 命令 -Examples</code> 查用法 · <code class="inline">Get-Command 关键词</code> 找命令 · <code class="inline">命令 | Get-Member</code> 看对象有什么属性方法</td></tr>
+          <tr><td>深挖资料站</td><td colspan="2">SS64（ss64.com，A-Z 命令典）· Rob van der Woude（robvanderwoude.com，批处理实例宝库）· 批处理之家（bathome.net，中文论坛）· DosTips（英文深水区）· devblogs.microsoft.com/commandline（官方博客）</td></tr>
         </tbody>
       </table>
       <div class="callout ok" style="margin-top:8px">🎓 毕业寄语：命令行不是背出来的，是用出来的。把这页打印出来，忘什么查什么；两个星期后你会发现，大部分命令已经长在手指上了。</div>
@@ -277,7 +444,7 @@
 
 </main>
 
-<footer class="foot">命令行学院 · 六个阶段全部完结 · 常回来翻翻速查表，命令是用手记住的</footer>
+<footer class="foot">命令行学院 · 九阶段 + 实战营全部完结 · 常回来翻翻速查表，命令是用手记住的</footer>
 
 <script src="assets/app.js"></script>
 <script>
