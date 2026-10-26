@@ -203,6 +203,8 @@ dism /image:C:\ /cleanup-image /restorehealth  <span class="cm">&amp;:: 离线�
 
 <footer class="foot">阶段 ⑧ · 系统急救与安全 · 命令行学院</footer>
 <script src="assets/app.js"></script>
+<script src="assets/guard.js"></script>
+<script src="assets/secure.js"></script>
 <script>
 (function () {
   /* ============ 互动1：系统急救决策树 ============ */
@@ -368,18 +370,9 @@ dism /image:C:\ /cleanup-image /restorehealth  <span class="cm">&amp;:: 离线�
 
   /* ============ 互动4：危险命令红线 ============ */
   (function () {
-    var DANGERS = [
-      { n: 'format X:', use: '格式化磁盘（高级格式化）', boom: '秒杀整盘数据。盘符敲错（想格 U 盘 E: 结果格了移动硬盘 D:）= 数据蒸发，且不可恢复。', guard: '跑之前 <code class="inline">vol X:</code> 看卷标、<code class="inline">dir X:\\</code> 看内容，确认里面不是你的照片库。' },
-      { n: 'diskpart → clean', use: '清空磁盘分区表（装机/换盘时用）', boom: 'clean 把分区表整个抹掉——所有分区瞬间"消失"。比 format 更彻底，恢复要靠专业工具碰运气。', guard: '永远先 <code class="inline">list disk</code> + <code class="inline">detail disk</code> 核对型号和容量再 select disk；80G 的 SSD 和 4T 的 HDD 分清。' },
-      { n: 'del /s /q C:\\某目录', use: '递归静默删除', boom: '不进回收站、无确认。路径少打一个空格：<code class="inline">del /s /q C:\\ 练习</code>（多了个空格）= 对 C 盘根目录递归删除，系统当场报废。', guard: '先跑 <code class="inline">dir /s C:\\某目录</code> 看要删什么；删除命令永远用引号包路径且检查空格。' },
-      { n: 'rd /s /q 目录', use: '递归删除目录树', boom: '同上，整个目录树秒没。经典事故：rd /s /q %TEMP% 写错成 rd /s /q %TEMP%\\. 或变量为空时变成对当前目录操作。', guard: '变量可能为空的命令前先 echo 看实际展开值：<code class="inline">echo rd /s /q "%TEMP%"</code>。' },
-      { n: 'cipher /w:C:\\', use: '覆写空闲空间（卖电脑前防恢复）', boom: '它本身"只"写空闲空间，但整盘覆写会持续数小时高负荷读写，老 SSD 折寿；更惨的是写错盘符变成对系统盘全盘覆写。', guard: '明确目标是盘不是目录；只在要出手硬盘时用一次。' },
-      { n: 'reg delete HKLM\\… /f', use: '删除注册表机器级键值', boom: 'HKLM 是系统全局配置。删错键 = 驱动加载失败、服务起不来、甚至无法登录，WinRE 修复都未必救得回。', guard: 'HKLM 一律先 export；"一键优化"的 .reg 文件用记事本打开看一眼有没有 delete 字样。' },
-      { n: 'vssadmin delete shadows /all', use: '删除全部卷影副本（还原点）', boom: '你的"后悔药"（系统还原点 + 以前版本文件）全灭。勒索病毒最爱跑这条——你手动跑效果一样。', guard: '想清理空间用系统设置里的"存储感知"，别手动删还原点。' },
-      { n: 'bcdedit /set …', use: '改启动配置（调试用）', boom: '改错参数轻则启动菜单混乱，重则系统无法引导，只能 WinRE 重建。', guard: '改之前 <code class="inline">bcdedit /export C:\\bcd-backup</code> 备份；出事用 <code class="inline">bootrec /rebuildbcd</code> 重建。' }
-    ];
     var btns = document.getElementById('dg-btns');
     var expEl = document.getElementById('dg-exp');
+    SecureAPI.load('stage8-dangers').then(function (DANGERS) {
     DANGERS.forEach(function (d) {
       var b = document.createElement('button');
       b.className = 'opt';
@@ -394,6 +387,10 @@ dism /image:C:\ /cleanup-image /restorehealth  <span class="cm">&amp;:: 离线�
           '<b>🛡 防呆方法</b>：' + d.guard;
       });
       btns.appendChild(b);
+    });
+    }).catch(function (e) {
+      expEl.className = 'explain bad';
+      expEl.innerHTML = '<b>内容加载失败：</b>' + String(e).replace(/</g, '&lt;') + '——请通过 http(s) 访问后重试。';
     });
   })();
 })();

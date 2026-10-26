@@ -1,0 +1,17 @@
+[
+  { "c": "pushd D:\\项目 && popd", "o": ["C:\\D:\\项目>", "C:\\D:\\项目> popd", "C:\\Users\\you>"], "e": "<b>目录栈</b>：pushd 跳转并\"记住来路\"，popd 一秒回原处——比 cd 来 cd 去 干净得多，还支持网络路径（pushd \\\\服务器\\共享 会自动临时映射盘符）。" },
+  { "c": "subst X: C:\\深层目录\\嵌套\\好深", "o": ["C:\\X:\\>  出现了一个新\"硬盘\" X:"], "e": "<b>虚拟盘符</b>：给深层目录发一个盘符，<code class=\"inline\">subst X: /d</code> 删除。把\"点开五层才到\"的工作目录变成一个盘符。与 mklink /d 符号链接效果类似，subst 无需管理员。" },
+  { "c": "doskey /history", "o": ["ipconfig /all", "robocopy C:\\资料 D:\\备份 /e", "tasklist | findstr node"], "e": "<b>历史命令列表</b>：本次会话敲过的全部命令。配合 F9（按编号重放）和 <code class=\"inline\">doskey /history > 教程.log</code> 导出——写文档神器。" },
+  { "c": "choice /c YNC /m \"确定要继续吗\"", "o": ["确定要继续吗 [Y,N,C]? Y"], "e": "<b>交互确认</b>：bat 里做 Y/N 菜单，退出码即选项序号（errorlevel 1=Y）。脚本\"危险操作前先问一句\"全靠它，比 timeout 多了判断力。" },
+  { "c": "timeout /t 10 /nobreak", "o": ["正在等待 10 秒，按 CTRL+C 键退出…"], "e": "<b>脚本暂停</b>：批处理里\"等 10 秒再继续\"。/nobreak 按键也不能跳过。ping -n 11 127.0.0.1 >nul 是它的老式替代写法。" },
+  { "c": "title 服务器巡检中 · 不要关", "o": ["（窗口标题已改变）"], "e": "<b>窗口改名</b>：多窗口工作时的救命细节——一眼分清哪个是备份、哪个是巡检、哪个随便玩。脚本开头加一行 title 立刻显得专业。" },
+  { "c": "color 0A", "o": ["（黑底绿字，黑客既视感）"], "e": "<b>换配色</b>：第一位背景色、第二位前景色（0黑 A绿 2青 7白 F亮白…）。<code class=\"inline\">color /?</code> 看全表。还原用 <code class=\"inline\">color</code> 不带参数。" },
+  { "c": "msg %username% \"该休息一下了\"", "o": ["（屏幕弹出消息框：该休息一下了）"], "e": "<b>发消息框</b>：给本机/局域网会话弹窗（msg 用户名或会话名）。局域网同事电脑弹窗提醒，全场最靓的仔（需对方开启允许）。" },
+  { "c": "eventcreate /l APPLICATION /so 我的脚本 /id 100 /d \"备份完成\"", "o": ["成功: 已创建事件 100，源为 \"我的脚本\""], "e": "<b>写事件日志</b>：让脚本在 Windows 事件日志里留痕。配合 wevtutil 查询，脚本运行历史有了官方存档。" },
+  { "c": "tzutil /g", "o": ["China Standard Time"], "e": "<b>时区查询</b>：/g 拿当前时区 ID，<code class=\"inline\">tzutil /s \"UTC\"</code> 切换。服务器脚本里和 %DATE% 配合做跨时区日志对时。" },
+  { "c": "whoami /groups | findstr \"12288\"", "o": ["（命中 = 当前是管理员身份）"], "e": "<b>我是谁</b>：whoami /user 看账户、/groups 看组。判断当前是否管理员提权的土办法：筛 SID 12288（Administrators）。" },
+  { "c": "openfiles /query", "o": ["ID  访问者    类型  文件", "12  DESKTOP\\you 文件  C:\\共享\\报表.xlsx"], "e": "<b>谁开着我的文件</b>：列出本机共享中被打开的文件（需先 openfiles /local on 重启生效）。\"这文件怎么删不掉\"的元凶抓捕器。" },
+  { "c": "pktmon start --capture --comp nics -f 抓包.etl", "o": ["数据包监视器已启动。"], "e": "<b>内置抓包器</b>：Win10 2004+ 自带。抓网络包转 ETL，<code class=\"inline\">pktmon etl2pcap 抓包.etl -o 抓包.pcapng</code> 转成 Wireshark 能读的格式——不用装抓包工具了。" },
+  { "c": "freedisk C:", "o": ["信息: 可用磁盘空间: 187,431 磁盘字节总数等…"], "e": "<b>剩余空间判断</b>：脚本里 <code class=\"inline\">freedisk C: | findstr …</code> 做条件——C 盘剩余不足 5GB 就自动清理，防患于未然。" },
+  { "c": "wusa /uninstall /kb:5001234 /quiet /norestart", "o": ["（静默卸载指定补丁，稍后生效）"], "e": "<b>补丁手术刀</b>：某个更新把系统搞坏了？一条命令精准卸载它（/quiet 免交互）。配 <code class=\"inline\">wmic qfe list</code> 先查已装补丁编号。" }
+]

@@ -252,17 +252,12 @@ winget upgrade --all          <span class="cm">&amp;:: 一键把所有软件升�
 
 <footer class="foot">阶段 ⑤ · 系统管理 · 命令行学院</footer>
 <script src="assets/app.js"></script>
+<script src="assets/guard.js"></script>
+<script src="assets/secure.js"></script>
 <script>
-/* ============ 互动1：进程管理模拟器 ============ */
 (function () {
-  var PROCS = [
-    { name: 'System', pid: 4, mem: '144 K', what: '系统内核', danger: 2 },
-    { name: 'explorer.exe', pid: 1204, mem: '82,944 K', what: '桌面和任务栏', danger: 1 },
-    { name: 'chrome.exe', pid: 3120, mem: '512,000 K', what: '浏览器', danger: 0 },
-    { name: 'test-server.exe', pid: 4520, mem: '156,248 K', what: '你的测试服务', danger: 0 },
-    { name: 'WeChat.exe', pid: 5108, mem: '380,928 K', what: '微信', danger: 0 },
-    { name: 'notepad.exe', pid: 6644, mem: '12,288 K', what: '记事本', danger: 0 }
-  ];
+  /* 进程数据从加密接口加载（源：tools/content/stage5-procs.json → node tools/build-api.js） */
+  var PROCS = null;
   var tbody = document.querySelector('#pm-table tbody');
   var btns = document.getElementById('pm-btns');
   var out = document.getElementById('pm-out');
@@ -345,6 +340,7 @@ winget upgrade --all          <span class="cm">&amp;:: 一键把所有软件升�
     CMDS[+b.dataset.c].run();
   });
   tbody.addEventListener('click', function (e) {
+    if (!PROCS) return;
     var tr = e.target.closest('tr');
     if (!tr) return;
     var p = PROCS[+tr.dataset.i];
@@ -370,8 +366,17 @@ winget upgrade --all          <span class="cm">&amp;:: 一键把所有软件升�
     exp.className = 'explain';
     exp.innerHTML = '👆 点一个命令，或点左边进程表的任意一行。';
   }
-  document.getElementById('pm-reset').addEventListener('click', reset);
-  reset();
+  document.getElementById('pm-reset').addEventListener('click', function () {
+    if (PROCS) reset();
+  });
+  /* 接口加载：AES-256-GCM 解密成功后再初始化模拟器 */
+  SecureAPI.load('stage5-procs').then(function (data) {
+    PROCS = data;
+    reset();
+  }).catch(function (e) {
+    exp.className = 'explain bad';
+    exp.innerHTML = '<b>内容加载失败：</b>' + esc(String(e)) + '<br>请通过 http(s) 访问本站（GitHub Pages 或本地 python server.py）后重试。';
+  });
 })();
 
 /* ============ 互动2：系统体检命令选择器 ============ */
